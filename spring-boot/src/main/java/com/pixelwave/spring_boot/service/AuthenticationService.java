@@ -3,6 +3,7 @@ package com.pixelwave.spring_boot.service;
 import com.pixelwave.spring_boot.DTO.auth.LoginRequest;
 import com.pixelwave.spring_boot.DTO.auth.LoginResponse;
 import com.pixelwave.spring_boot.DTO.auth.RegisterRequest;
+import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.exception.ConflictException;
 import com.pixelwave.spring_boot.exception.InvalidToken;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
@@ -27,6 +28,7 @@ import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
+import java.time.LocalDateTime;
 import java.util.Map;
 
 @Service
@@ -47,6 +49,10 @@ public class AuthenticationService {
   private String googleClientSecret;
   @Value("${spring.security.oauth2.client.provider.google.user-info-uri}")
   private String googleUserInfoUri;
+  @Value("${client.url}")
+  private String clientUrl;
+  @Value("${refresh-token-expiry-time}")
+  private Long refreshTokenExpiryTime;
 
   private final OAuth2AuthorizedClientManager authorizedClientManager;
   private final UserRepository userRepository;
@@ -74,7 +80,7 @@ public class AuthenticationService {
     var jwt = jwtService.generateToken(user);
     //send email to verify the email
     emailSenderService.sendEmail(request.getUsername(), "Activate your account",
-            "http://localhost:5173/activate/" + jwt);
+            clientUrl+"/activate/" + jwt);
   }
 
   public void activeAccount(String token) {
@@ -98,62 +104,45 @@ public class AuthenticationService {
 
     var user = (User)authenticate.getPrincipal();
 
-    var jwtToken = jwtService.generateToken(user);
-    var refreshToken = jwtService.generateRefreshToken(user);
-    if(user.getTokens().isEmpty())
-    {
-      tokenRepository.save(
-              Token.builder()
-                      .user((User) user)
-                      .token(refreshToken)
-                      .isRevoked(false)
-                      .build()
-      );
-    }
-    else{
-      user.getTokens().getFirst().setToken(refreshToken);
-      tokenRepository.save(user.getTokens().get(0));
-    }
-
-
-    return LoginResponse.builder()
-        .accessToken(jwtToken)
-        .refreshToken(refreshToken)
-        .build();
+    return getLoginResponse(user);
   }
 
   public LoginResponse socialLogin(LoginRequest request) {
     var user = userRepository.findByUsername(request.getUsername())
             .orElseThrow(() -> new ResourceNotFoundException("User not found"));
 
+    return getLoginResponse(user);
+  }
+
+  private LoginResponse getLoginResponse(User user) {
     var jwtToken = jwtService.generateToken(user);
-    var refreshToken = jwtService.generateRefreshToken(user);
+    var refreshToken = jwtService.generateOpaqueToken();
     tokenRepository.save(
             Token.builder()
-                    .user((User) user)
+                    .user(user)
                     .token(refreshToken)
+                    .expiryDateTime(LocalDateTime.now().plusSeconds(refreshTokenExpiryTime))
                     .isRevoked(false)
                     .build()
     );
-
     return LoginResponse.builder()
             .accessToken(jwtToken)
             .refreshToken(refreshToken)
+            .user(modelMapper.map(user, UserResponseDTO.class))
             .build();
   }
 
   public LoginResponse refreshToken(String refreshToken) {
-
-    jwtService.isTokenValid(refreshToken);
 
     var token = tokenRepository.findByToken(refreshToken)
         .orElseThrow(() -> new InvalidToken("Refresh token not found in database"));
     if (token.isRevoked()) {
       throw new InvalidToken("Refresh token has been revoked");
     }
-    var newRefreshToken = jwtService.generateRefreshToken(token.getUser());
+    var newRefreshToken = jwtService.generateOpaqueToken();
     var newAccessToken = jwtService.generateToken(token.getUser());
     token.setToken(newRefreshToken);
+    token.setExpiryDateTime(LocalDateTime.now().plusSeconds(refreshTokenExpiryTime));
     tokenRepository.save(token);
 
     return LoginResponse.builder()
@@ -179,7 +168,6 @@ public class AuthenticationService {
       restTemplate.setRequestFactory(new HttpComponentsClientHttpRequestFactory());
       switch (provider) {
         case "google":
-
           String accessToken = new GoogleAuthorizationCodeTokenRequest(
                   new NetHttpTransport(), new GsonFactory(),
                   googleClientId,

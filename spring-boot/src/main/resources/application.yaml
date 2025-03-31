@@ -47,3 +47,9 @@ logging:
   level:
     root: warn
     org.springframework.security: DEBUG
+client:
+  url: ${CLIENT_URL}
+
+jwt-secret: ${JWT_SECRET}
+jwt-expiry-time: 3600  #1 hour
+refresh-token-expiry-time: 604 800 # 7 days

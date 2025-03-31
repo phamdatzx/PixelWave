@@ -13,6 +13,8 @@ public interface JwtService {
 
     String generateToken(UserDetails userDetails);
 
+    String generateOpaqueToken();
+
     boolean isTokenNotExpired(String token);
 
     Date extractExpiration(String token);

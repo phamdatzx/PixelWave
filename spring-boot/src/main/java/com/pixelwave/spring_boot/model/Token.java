@@ -6,6 +6,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Entity
 @Data
 @Builder
@@ -18,6 +20,8 @@ public class Token {
     private Long id;
 
     private String token;
+
+    private LocalDateTime expiryDateTime;
 
     private boolean isRevoked;
 

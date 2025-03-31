@@ -13,19 +13,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.security.Key;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.Date;
 import java.util.function.Function;
 
 @Service
 public class JwtServiceImpl implements JwtService {
-    @Value("${JWT_SECRET}")
+    @Value("${jwt-secret}")
     private String SECRET;
 
-    @Value("${JWT_EXPIRY_TIME}")
+    @Value("${jwt-expiry-time}")
     private Long jwtExpiryTime;
 
-    @Value("${REFRESH_TOKEN_EXPIRY_TIME}")
+    @Value("${refresh-token-expiry-time}")
     private Long refreshTokenExpiryTime ;
+
+    private final SecureRandom secureRandom = new SecureRandom();
 
     public String generateToken(UserDetails userDetails) {
         return Jwts.builder()
@@ -44,6 +48,13 @@ public class JwtServiceImpl implements JwtService {
                 .signWith(getSigningKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
+    public String generateOpaqueToken() {
+        byte[] randomBytes = new byte[32];
+        secureRandom.nextBytes(randomBytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(randomBytes);
+    }
+
 
     public String extractSubject(String token) {
         return extractClaim(token, Claims::getSubject);
