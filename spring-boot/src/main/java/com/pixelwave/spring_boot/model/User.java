@@ -1,16 +1,13 @@
 package com.pixelwave.spring_boot.model;
 
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.util.*;
 import java.util.Collection;
-import java.util.List;
 
 @Entity
 @Table(name = "users")
@@ -18,21 +15,50 @@ import java.util.List;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Setter
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(unique = true)
+    @Column(name = "username", nullable = false, length = 50)
     private String username;
 
+    @Column(name = "password", length = 256)
     private String password;
 
+    @Column(name = "full_name", nullable = false, length = 50)
     private String fullName;
 
+    @Column(name = "avatar", length = 256)
     private String avatar;
 
-    private boolean isActivated;
+    @Column(name = "phone_number", length = 20)
+    private String phoneNumber;
+
+    @Column(name = "age", nullable = false)
+    private Integer age;
+
+    @Column(name = "gender", length = 10)
+    private String gender;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Post> posts = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<com.pixelwave.spring_boot.model.Collection> collections = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+    private List<Comment> comments = new ArrayList<>();
+
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private Set<Report> reports = new HashSet<>();
+//
+//    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
+//    private Set<Notification> notifications = new HashSet<>();
+
+    @Column(name = "activated", nullable = false)
+    private Boolean activated;
 
     @Enumerated(EnumType.STRING)
     private Role role;

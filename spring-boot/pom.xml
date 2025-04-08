@@ -119,6 +119,11 @@
 			<artifactId>google-http-client-jackson2</artifactId>
 			<version>1.42.3</version> <!-- Match google-http-client version -->
 		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+			<version>1.12.472</version>
+		</dependency>
 	</dependencies>
 
 	<build>

@@ -53,3 +53,10 @@ client:
 jwt-secret: ${JWT_SECRET}
 jwt-expiry-time: 3600  #1 hour
 refresh-token-expiry-time: 604 800 # 7 days
+aws:
+  accessKey: ${AWS_ACCESS_KEY_ID}
+  secretKey: ${AWS_SECRET_ACCESS_KEY}
+  s3:
+    bucket-name: ${AWS_S3_BUCKET_NAME}
+    region: ${AWS_REGION}
+

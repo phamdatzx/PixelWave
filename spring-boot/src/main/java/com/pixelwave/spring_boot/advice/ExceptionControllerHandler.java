@@ -18,6 +18,7 @@ import java.util.Map;
 
 @RestControllerAdvice
 public class ExceptionControllerHandler {
+
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MethodArgumentNotValidException.class)
   public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
@@ -48,11 +49,6 @@ public class ExceptionControllerHandler {
   @ExceptionHandler(ForbiddenException.class)
   public ResponseEntity<ErrorDTO> handleForbiddenException(ForbiddenException e) {
     return ResponseEntity.status(403).body(new ErrorDTO(e.getMessage(), LocalDateTime.now()));
-  }
-
-  @ExceptionHandler(Exception.class)
-  public ResponseEntity<String> handleException(Exception e) {
-    return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Error: " + e.getMessage());
   }
 
   @ExceptionHandler(SignatureException.class)

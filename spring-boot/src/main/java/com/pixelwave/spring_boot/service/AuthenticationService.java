@@ -211,7 +211,7 @@ public class AuthenticationService {
             .fullName(name)
             .avatar(picture)
             .password(null)
-            .isActivated(true)
+            .activated(true)
             .role(Role.USER)
             .build();
     userRepository.save(user);
