@@ -40,9 +40,11 @@ public class Post {
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<Image> images = new ArrayList<>();
 
+    private int commentCount = 0;
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
+    private int likeCount = 0;
     @ManyToMany
     @JoinTable(
             name = "post_like",
@@ -72,6 +74,10 @@ public class Post {
                 image.setPost(this);
             }
         }
+    }
+    public boolean isLikedByUser(User user) {
+        return this.getLikedBy().stream()
+                .anyMatch(likedUser -> likedUser.getId().equals(user.getId()));
     }
 }
 

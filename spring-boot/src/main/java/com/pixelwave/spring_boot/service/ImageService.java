@@ -29,11 +29,11 @@ public class ImageService {
         //validate image
         validateImage(file);
         //save image to s3
-        String url = s3Service.uploadFile(file, null);
+        //String url = s3Service.uploadFile(file, null);
         return
                 Image.builder()
                 .size(file.getSize())
-                .url(url)
+                .url("url")
                 .build();
     }
 

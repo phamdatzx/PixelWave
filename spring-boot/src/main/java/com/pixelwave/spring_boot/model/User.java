@@ -51,6 +51,14 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Comment> comments = new ArrayList<>();
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_friends", // Join table name
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "friend_id")
+    )
+    private List<User> friends = new ArrayList<>();
+
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 //    private Set<Report> reports = new HashSet<>();
 //
@@ -79,5 +87,10 @@ public class User implements UserDetails {
     @Override
     public String getPassword() {
         return password;
+    }
+
+    public boolean isFriendWith(long otherUserId) {
+        return friends.stream()
+                .anyMatch(friend -> friend.getId().equals(otherUserId));
     }
 }

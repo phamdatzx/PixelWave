@@ -1,9 +1,9 @@
 package com.pixelwave.spring_boot.controller;
 
 import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
+import com.pixelwave.spring_boot.DTO.post.PostResponsesPageDTO;
 import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
 import com.pixelwave.spring_boot.service.PostService;
-import com.pixelwave.spring_boot.service.S3Service;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -11,7 +11,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 @RestController
 @RequestMapping("/api")
@@ -31,5 +30,21 @@ public class PostController {
     public ResponseEntity<PostResponseDTO> getPostById(@AuthenticationPrincipal UserDetails userDetails ,
                                                        @PathVariable Long postId) {
         return ResponseEntity.ok(postService.getPostById(userDetails, postId));
+    }
+
+    @PostMapping("/post/{postId}/toggle-like")
+    public ResponseEntity<Void> toggleLikePost(@AuthenticationPrincipal UserDetails userDetails ,
+                                          @PathVariable Long postId) {
+        postService.toggleLikePost(userDetails, postId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+    @GetMapping("/user/{userId}/posts")
+    public ResponseEntity<PostResponsesPageDTO> getUserPosts(@AuthenticationPrincipal UserDetails userDetails ,
+                                                             @PathVariable Long userId,
+                                                             @RequestParam(defaultValue = "1") int page,
+                                                             @RequestParam(defaultValue = "10") int size,
+                                                             @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                             @RequestParam(defaultValue = "desc") String sortDirection){
+        return ResponseEntity.ok(postService.getUserPosts(userDetails, userId, page, size, sortBy, sortDirection));
     }
 }
