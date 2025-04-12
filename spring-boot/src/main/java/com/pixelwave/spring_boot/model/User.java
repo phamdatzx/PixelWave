@@ -42,6 +42,9 @@ public class User implements UserDetails {
     @Column(name = "gender", length = 10)
     private String gender;
 
+    @Column(name = "bio", length = 256)
+    private String bio;
+
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
     private List<Post> posts = new ArrayList<>();
 
@@ -58,6 +61,31 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "friend_id")
     )
     private List<User> friends = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_followers", // Join table name
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "follower_id")
+    )
+    private List<User> followers = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_followers", // Join table name
+            joinColumns = @JoinColumn(name = "follower_id"),
+            inverseJoinColumns = @JoinColumn(name = "user_id")
+    )
+    private List<User> followingUsers = new ArrayList<>();
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_block", // Join table name
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "block_user_id")
+    )
+    private List<User> blockedUsers = new ArrayList<>();
+
 
 //    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL)
 //    private Set<Report> reports = new HashSet<>();
@@ -92,5 +120,10 @@ public class User implements UserDetails {
     public boolean isFriendWith(long otherUserId) {
         return friends.stream()
                 .anyMatch(friend -> friend.getId().equals(otherUserId));
+    }
+
+    public boolean isBlocking(User otherUser) {
+        return blockedUsers.stream()
+                .anyMatch(blockedUser -> blockedUser.getId().equals(otherUser.getId()));
     }
 }
