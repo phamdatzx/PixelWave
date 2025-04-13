@@ -46,7 +46,7 @@ public class UserController {
 //    public ResponseEntity<Void> getFriendRequests(@AuthenticationPrincipal UserDetails userDetails) {
 //        userService.getFriendRequests(userDetails);
 //        return ResponseEntity.status(201).build();
-//    }
+//    }user
 
     //accept friend request
 
