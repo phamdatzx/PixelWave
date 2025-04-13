@@ -1,15 +1,21 @@
 package com.pixelwave.spring_boot.service;
 
+import com.pixelwave.spring_boot.model.Conservation;
+import com.pixelwave.spring_boot.repository.ConservationRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Service
+@RequiredArgsConstructor
 public class ChannelManager {
 
     // Store channels and their subscribers
     private final Map<String, Set<String>> channels = new ConcurrentHashMap<>();
+
+    private final ConservationRepository conservationRepository;
 
     /**
      * Create a new channel
@@ -28,13 +34,20 @@ public class ChannelManager {
      * Subscribe a user to a channel
      * @param channelId The channel identifier
      * @param userId The user identifier
-     * @return true if subscription was successful
      */
-    public boolean subscribe(String channelId, String userId) {
+    public void subscribe(String channelId, String userId) {
         if (!channels.containsKey(channelId)) {
             createChannel(channelId);
         }
-        return channels.get(channelId).add(userId);
+
+        // Check if the channel exists in the database
+        Conservation conservation = conservationRepository.findById(channelId)
+                .orElseThrow(() -> new IllegalArgumentException("Channel not found: " + channelId));
+
+        // Check if the user is in the conservation
+        if(conservation.getUser1().getId().equals(userId) || conservation.getUser2().getId().equals(userId)) {
+            channels.get(channelId).add(userId);
+        }
     }
 
     /**

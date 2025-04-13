@@ -45,12 +45,12 @@ public class WebSocketController {
         String userId = subscription.getUserId();
         String channelId = subscription.getChannelId();
 
+        // Subscribe user to channel
+        channelManager.subscribe(channelId, userId);
+
         // Store user in WebSocket session for handling disconnect events
         headerAccessor.getSessionAttributes().put("userId", userId);
         headerAccessor.getSessionAttributes().put("channelId", channelId);
-
-        // Subscribe user to channel
-        channelManager.subscribe(channelId, userId);
 
         // Notify channel about new user
         WebSocketMessageDTO message = new WebSocketMessageDTO();
