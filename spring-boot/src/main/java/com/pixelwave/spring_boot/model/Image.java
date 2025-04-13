@@ -3,7 +3,6 @@ package com.pixelwave.spring_boot.model;
 import jakarta.persistence.*;
 import lombok.*;
 
-
 @Data
 @Entity
 @Builder
@@ -28,8 +27,8 @@ public class Image {
     @ManyToOne
     private Comment comment;
 
-//    @ManyToOne
-//    @JoinColumn(name = "message_id")
-//    private Message message;
+    @ManyToOne
+    @JoinColumn(name = "message_id")
+    private Message message;
 
 }
