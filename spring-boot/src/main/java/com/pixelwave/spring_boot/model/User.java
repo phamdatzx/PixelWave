@@ -15,7 +15,6 @@ import java.util.Collection;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-@Setter
 public class User implements UserDetails {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -125,5 +124,10 @@ public class User implements UserDetails {
     public boolean isBlocking(User otherUser) {
         return blockedUsers.stream()
                 .anyMatch(blockedUser -> blockedUser.getId().equals(otherUser.getId()));
+    }
+
+    public void addFriend(User friend) {
+        this.friends.add(friend);
+        friend.getFriends().add(this);
     }
 }

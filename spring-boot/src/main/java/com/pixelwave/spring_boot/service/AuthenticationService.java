@@ -79,8 +79,8 @@ public class AuthenticationService {
     //generate jwt token for activating url
     var jwt = jwtService.generateToken(user);
     //send email to verify the email
-    emailSenderService.sendEmail(request.getUsername(), "Activate your account",
-            clientUrl+"/activate/" + jwt);
+//    emailSenderService.sendEmail(request.getUsername(), "Activate your account",
+//            clientUrl+"/activate/" + jwt);
   }
 
   public void activeAccount(String token) {

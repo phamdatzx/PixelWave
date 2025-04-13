@@ -1,5 +1,6 @@
 package com.pixelwave.spring_boot.controller;
 
+import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
 import com.pixelwave.spring_boot.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -7,6 +8,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -42,15 +45,27 @@ public class UserController {
         return ResponseEntity.status(201).build();
     }
     //get add friend requests of me
-//    @GetMapping("/user/friend-requests")
-//    public ResponseEntity<Void> getFriendRequests(@AuthenticationPrincipal UserDetails userDetails) {
-//        userService.getFriendRequests(userDetails);
-//        return ResponseEntity.status(201).build();
-//    }user
+    @GetMapping("/user/friend-requests")
+    public ResponseEntity<List<AddFriendRequestDTO>> getPendingFriendRequests(@AuthenticationPrincipal UserDetails userDetails) {
+        var res = userService.getPendingFriendRequests(userDetails);
+        return ResponseEntity.ok(res);
+    }
 
     //accept friend request
+    @PostMapping("/user/friend-request/{requestId}/accept")
+    public ResponseEntity<Void> acceptFriendRequest(@AuthenticationPrincipal UserDetails userDetails,
+                                                    @PathVariable Long requestId) {
+        userService.acceptFriendRequest(userDetails, requestId);
+        return ResponseEntity.status(200).build();
+    }
 
     //reject friend request
+    @PostMapping("/user/friend-request/{requestId}/reject")
+    public ResponseEntity<Void> rejectFriendRequest(@AuthenticationPrincipal UserDetails userDetails,
+                                                    @PathVariable Long requestId) {
+        userService.rejectFriendRequest(userDetails, requestId);
+        return ResponseEntity.status(200).build();
+    }
 
 
 
