@@ -47,4 +47,14 @@ public class PostController {
                                                              @RequestParam(defaultValue = "desc") String sortDirection){
         return ResponseEntity.ok(postService.getUserPosts(userDetails, userId, page, size, sortBy, sortDirection));
     }
+
+//    @GetMapping("/post/{postId}/comments")
+//    public ResponseEntity<PostResponseDTO> getPostComments(@AuthenticationPrincipal UserDetails userDetails ,
+//                                                      @PathVariable Long postId,
+//                                                      @RequestParam(defaultValue = "1") int page,
+//                                                      @RequestParam(defaultValue = "10") int size,
+//                                                      @RequestParam(defaultValue = "createdAt") String sortBy,
+//                                                      @RequestParam(defaultValue = "desc") String sortDirection){
+//        return ResponseEntity.ok(postService.getPostComments(userDetails, postId, page, size, sortBy, sortDirection));
+//    }
 }
