@@ -1,0 +1,65 @@
+.post-images {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 16px;
+  background-color: rgba(0, 0, 0, 0.1); // Grey background for blank space
+  width: 500px;
+  max-height: 70vh;
+  overflow: hidden;
+  border-radius: 8px;
+
+  .post-image {
+    width: 100%;
+    height: auto;
+    max-height: 70vh;
+    background-color: #e0e0e0; // Grey background for blank space
+    object-fit: contain; // Ensures the image fits within the frame while maintaining aspect ratio
+
+    /* Handle cases where width > height */
+    &.landscape {
+      max-height: 360px; // Limit height for landscape images
+    }
+
+    /* Handle cases where height > width */
+    &.portrait {
+      max-height: 70vh; // Limit height for portrait images
+    }
+
+    /* Handle square images */
+    &.square {
+      height: auto;
+      max-height: 500px; // Ensure square images fit within the frame
+    }
+  }
+
+  .prev-btn,
+  .next-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(0, 0, 0, 0.5);
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+
+    &:hover {
+      filter: brightness(150%);
+    }
+  }
+
+  .prev-btn {
+    left: 8px;
+  }
+
+  .next-btn {
+    right: 8px;
+  }
+}

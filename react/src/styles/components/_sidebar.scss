@@ -1,0 +1,47 @@
+.sidebar{
+  display: flex;
+  flex-direction: column;
+  position: relative;
+  height: 600px;
+  width: 250px;
+  margin-bottom: 1rem;
+  border-radius: 45px;
+  background-color: #F6D0FF;
+  color: #00095E;
+
+  ul{
+    flex: 1;
+    display: flex;
+    width: 100%;
+    flex-direction: column;
+    justify-content: center;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+
+    li{
+      width: 100%;
+      margin: 10px 0;
+      padding: 10px 20px;
+      
+      &.isLocate{
+        background-color: #fff;
+        width: 80%;
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+        box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+      }
+
+      a{
+        display: flex;
+        flex-direction: row;
+        gap: 16px;
+        font-size: 18px;
+        font-weight: bold;
+        text-decoration: none;
+      }
+    }
+  }
+
+
+}

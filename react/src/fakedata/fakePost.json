@@ -1,0 +1,92 @@
+[
+  {
+    "comment_id": "cmt_1",
+    "user_id": "user_1",
+    "post_id": "post_1",
+    "text": "Awesome post!",
+    "img_url": null,
+    "createAt": "2025-04-10T08:45:12Z",
+    "updateAt": "2025-04-10T08:45:12Z"
+  },
+  {
+    "comment_id": "cmt_2",
+    "user_id": "user_2",
+    "post_id": "post_2",
+    "text": null,
+    "img_url": "https://example.com/images/comment2.jpg",
+    "createAt": "2025-04-10T09:00:01Z",
+    "updateAt": "2025-04-10T09:00:01Z"
+  },
+  {
+    "comment_id": "cmt_3",
+    "user_id": "user_3",
+    "post_id": "post_3",
+    "text": "Very informative.",
+    "img_url": null,
+    "createAt": "2025-04-10T09:15:30Z",
+    "updateAt": "2025-04-10T09:20:00Z"
+  },
+  {
+    "comment_id": "cmt_4",
+    "user_id": "user_4",
+    "post_id": "post_4",
+    "text": null,
+    "img_url": "https://example.com/images/comment4.jpg",
+    "createAt": "2025-04-10T10:10:20Z",
+    "updateAt": "2025-04-10T10:10:20Z"
+  },
+  {
+    "comment_id": "cmt_5",
+    "user_id": "user_5",
+    "post_id": "post_1",
+    "text": "🔥🔥🔥",
+    "img_url": "https://example.com/images/comment5.jpg",
+    "createAt": "2025-04-10T11:25:00Z",
+    "updateAt": "2025-04-10T11:25:00Z"
+  },
+  {
+    "comment_id": "cmt_6",
+    "user_id": "user_6",
+    "post_id": "post_2",
+    "text": "Nice explanation!",
+    "img_url": null,
+    "createAt": "2025-04-10T12:00:00Z",
+    "updateAt": "2025-04-10T12:05:10Z"
+  },
+  {
+    "comment_id": "cmt_7",
+    "user_id": "user_1",
+    "post_id": "post_3",
+    "text": null,
+    "img_url": "https://example.com/images/comment7.png",
+    "createAt": "2025-04-10T12:45:30Z",
+    "updateAt": "2025-04-10T12:45:30Z"
+  },
+  {
+    "comment_id": "cmt_8",
+    "user_id": "user_2",
+    "post_id": "post_4",
+    "text": "Can you explain more?",
+    "img_url": null,
+    "createAt": "2025-04-10T13:30:45Z",
+    "updateAt": "2025-04-10T13:30:45Z"
+  },
+  {
+    "comment_id": "cmt_9",
+    "user_id": "user_3",
+    "post_id": "post_1",
+    "text": "Check this out!",
+    "img_url": "https://example.com/images/comment9.jpg",
+    "createAt": "2025-04-10T14:10:15Z",
+    "updateAt": "2025-04-10T14:12:00Z"
+  },
+  {
+    "comment_id": "cmt_10",
+    "user_id": "user_4",
+    "post_id": "post_2",
+    "text": "Great design!",
+    "img_url": null,
+    "createAt": "2025-04-10T15:00:00Z",
+    "updateAt": "2025-04-10T15:00:00Z"
+  }
+]

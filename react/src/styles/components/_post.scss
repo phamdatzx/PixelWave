@@ -1,0 +1,83 @@
+.post {
+	width: fit-content;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	padding: 16px;
+	margin-bottom: 16px;
+	background-color: #fff;
+	box-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+
+	.post-header {
+		display: flex;
+		align-items: center;
+		margin-bottom: 8px;
+
+		.user-avatar {
+			width: 40px;
+			height: 40px;
+			border-radius: 50%;
+			margin-right: 8px;
+		}
+
+		.user-data {
+			flex: 1;
+			display: flex;
+			flex-direction: column;
+
+			.user-name {
+				font-weight: bold;
+			}
+
+			.timestamp {
+				font-size: 0.8rem;
+			}
+		}
+
+		.others {
+			align-self: center;
+		}
+	}
+
+	.post-description {
+		margin-bottom: 16px;
+		font-size: 14px;
+		color: #333;
+	}
+
+
+
+	.post-actions {
+		display: flex;
+		gap: 32px;
+		margin-bottom: 16px;
+		align-items: center;
+
+		button {
+			display: flex;
+			align-items: center;
+			background: none;
+			border: none;
+			cursor: pointer;
+			font-size: 14px;
+
+			svg {
+				margin-right: 4px;
+			}
+		}
+	}
+
+	.see-more {
+		display: flex;
+		flex-direction: row;
+		font-style: italic;
+		font-size: 0.8rem;
+		font-weight: bold;
+		color: #333;
+		cursor: pointer;
+
+		svg {
+			width: 20px;
+			height: 20px;
+		}
+	}
+}
