@@ -135,4 +135,45 @@ public class UserService {
         targetRequest.setStatus("REJECTED");
         userAddFriendRequestRepository.save(targetRequest);
     }
+
+    public void blockUser(UserDetails userDetails, Long userId) {
+        var currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + ((User) userDetails).getId()));
+
+        var targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + userId));
+
+        if (currentUser.getBlockedUsers().contains(targetUser)) {
+            throw new ConflictException("You are already blocking this user");
+        }
+
+        currentUser.getBlockedUsers().add(targetUser);
+
+        userRepository.save(currentUser);
+    }
+
+    public void unblockUser(UserDetails userDetails, Long userId) {
+        var currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + ((User) userDetails).getId()));
+
+        var targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + userId));
+
+        if (!currentUser.getBlockedUsers().contains(targetUser)) {
+            throw new ConflictException("You are not blocking this user");
+        }
+
+        currentUser.getBlockedUsers().remove(targetUser);
+
+        userRepository.save(currentUser);
+    }
+
+    public List<UserDetailResponseDTO> getBlockedUsers(UserDetails userDetails) {
+        var currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + ((User) userDetails).getId()));
+
+        return currentUser.getBlockedUsers().stream()
+                .map(user -> modelMapper.map(user, UserDetailResponseDTO.class))
+                .toList();
+    }
 }

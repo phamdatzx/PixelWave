@@ -1,5 +1,6 @@
 package com.pixelwave.spring_boot.service;
 
+import com.pixelwave.spring_boot.DTO.PostRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseWithoutUserDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponsesPageDTO;
@@ -137,4 +138,9 @@ public class PostService {
     }
 
 
+    public List<PostRecommendationDTO> getFeed(UserDetails userDetails, int size) {
+
+        return postRepository.findRecommendedPosts(
+                ((User) userDetails).getId());
+    }
 }

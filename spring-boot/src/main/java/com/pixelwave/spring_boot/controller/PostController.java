@@ -1,5 +1,6 @@
 package com.pixelwave.spring_boot.controller;
 
+import com.pixelwave.spring_boot.DTO.PostRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponsesPageDTO;
 import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
@@ -11,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api")
@@ -48,13 +51,9 @@ public class PostController {
         return ResponseEntity.ok(postService.getUserPosts(userDetails, userId, page, size, sortBy, sortDirection));
     }
 
-//    @GetMapping("/post/{postId}/comments")
-//    public ResponseEntity<PostResponseDTO> getPostComments(@AuthenticationPrincipal UserDetails userDetails ,
-//                                                      @PathVariable Long postId,
-//                                                      @RequestParam(defaultValue = "1") int page,
-//                                                      @RequestParam(defaultValue = "10") int size,
-//                                                      @RequestParam(defaultValue = "createdAt") String sortBy,
-//                                                      @RequestParam(defaultValue = "desc") String sortDirection){
-//        return ResponseEntity.ok(postService.getPostComments(userDetails, postId, page, size, sortBy, sortDirection));
-//    }
+    @GetMapping("/feed")
+    public ResponseEntity<List<PostRecommendationDTO>> getFeed(@AuthenticationPrincipal UserDetails userDetails,
+                                                               @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(postService.getFeed(userDetails, size));
+    }
 }
