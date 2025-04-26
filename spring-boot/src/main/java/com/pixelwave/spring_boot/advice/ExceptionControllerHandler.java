@@ -51,6 +51,11 @@ public class ExceptionControllerHandler {
     return ResponseEntity.status(403).body(new ErrorDTO(e.getMessage(), LocalDateTime.now()));
   }
 
+  @ExceptionHandler(UnauthorizedException.class)
+  public ResponseEntity<ErrorDTO> handleUnauthorizeException(UnauthorizedException e) {
+    return ResponseEntity.status(401).body(new ErrorDTO(e.getMessage(), LocalDateTime.now()));
+  }
+
   @ExceptionHandler(SignatureException.class)
   public ResponseEntity<ErrorDTO> handleSignatureException(SignatureException e) {
     return ResponseEntity.status(401).body(new ErrorDTO("Invalid JWT signature", LocalDateTime.now()));
