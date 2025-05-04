@@ -145,8 +145,9 @@ public class AuthenticationService {
 
     var token = tokenRepository.findByToken(refreshToken)
         .orElseThrow(() -> new InvalidToken("Refresh token not found in database"));
+
     if (token.isRevoked()) {
-      throw new InvalidToken("Refresh token has been revoked");
+      throw new InvalidToken("Refresh token has been expired or revoked");
     }
     var newRefreshToken = jwtService.generateOpaqueToken();
     var newAccessToken = jwtService.generateToken(token.getUser());

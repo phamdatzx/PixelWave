@@ -65,4 +65,9 @@ public class ExceptionControllerHandler {
   public ResponseEntity<ErrorDTO> handleExpiredJwtException(ExpiredJwtException e) {
     return ResponseEntity.status(401).body(new ErrorDTO("Token is expired", LocalDateTime.now()));
   }
+
+    @ExceptionHandler(InvalidToken.class)
+    public ResponseEntity<ErrorDTO> handleInvalidTokenException(InvalidToken e) {
+        return ResponseEntity.status(401).body(new ErrorDTO(e.getMessage(), LocalDateTime.now()));
+    }
 }

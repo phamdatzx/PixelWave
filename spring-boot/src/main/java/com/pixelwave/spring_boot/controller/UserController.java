@@ -2,6 +2,7 @@ package com.pixelwave.spring_boot.controller;
 
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
+import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +18,11 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/user/me")
+    public ResponseEntity<UserDetailResponseDTO> getMyInfo(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userService.getUserById(((User)userDetails).getId()));
+    }
 
     //Get user by id
     @GetMapping("/user/{userId}")

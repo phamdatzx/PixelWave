@@ -5,6 +5,7 @@ import com.pixelwave.spring_boot.DTO.auth.LoginResponse;
 import com.pixelwave.spring_boot.DTO.auth.RefreshTokenDTO;
 import com.pixelwave.spring_boot.DTO.auth.RegisterRequest;
 import com.pixelwave.spring_boot.service.AuthenticationService;
+import com.pixelwave.spring_boot.service.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -60,4 +61,6 @@ public class AuthenticateController {
         // generate access and refresh token for the user
         return ResponseEntity.ok(service.socialLogin(new LoginRequest(result.get("email").toString(),null, result.get("name").toString())));
   }
+
+
 }
