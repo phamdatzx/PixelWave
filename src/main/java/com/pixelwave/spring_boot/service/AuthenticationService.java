@@ -7,6 +7,7 @@ import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.exception.ConflictException;
 import com.pixelwave.spring_boot.exception.InvalidToken;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
+import com.pixelwave.spring_boot.exception.UnauthorizedException;
 import com.pixelwave.spring_boot.model.Role;
 import com.pixelwave.spring_boot.model.Token;
 import com.pixelwave.spring_boot.model.User;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.stereotype.Service;
@@ -95,12 +97,18 @@ public class AuthenticationService {
   }
 
   public LoginResponse login(LoginRequest request) {
-    var authenticate = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-            request.getUsername(),
-            request.getPassword()
-        )
-    );
+    Authentication authenticate = null;
+
+    try {
+      authenticationManager.authenticate(
+              new UsernamePasswordAuthenticationToken(
+                      request.getUsername(),
+                      request.getPassword()
+              )
+      );
+    } catch (Exception e) {
+      throw new UnauthorizedException("Invalid username or password");
+    }
 
     var user = (User)authenticate.getPrincipal();
 
