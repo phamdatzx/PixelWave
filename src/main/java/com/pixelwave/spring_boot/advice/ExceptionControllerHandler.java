@@ -16,20 +16,27 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @RestControllerAdvice
 public class ExceptionControllerHandler {
 
   @ResponseStatus(HttpStatus.BAD_REQUEST)
   @ExceptionHandler(MethodArgumentNotValidException.class)
-  public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-    Map<String, String> errors = new HashMap<>();
-    ex.getBindingResult().getAllErrors().forEach((error) -> {
-      String fieldName = ((FieldError) error).getField();
-      String errorMessage = error.getDefaultMessage();
-      errors.put(fieldName, errorMessage);
-    });
-    return ResponseEntity.badRequest().body(errors);
+  public ResponseEntity<ErrorDTO> handleValidationExceptions(MethodArgumentNotValidException ex, HttpServletRequest request) {
+    String details = ex.getBindingResult().getAllErrors().stream()
+            .map(error -> ((FieldError) error).getDefaultMessage())
+            .collect(Collectors.joining(", "));
+
+    ErrorDTO errorDTO = ErrorDTO.builder()
+            .status(400)
+            .message("Validation failed")
+            .details(details)
+            .path(request.getRequestURI())
+            .timestamp(LocalDateTime.now())
+            .build();
+
+    return ResponseEntity.badRequest().body(errorDTO);
   }
 
   @ExceptionHandler(ResourceNotFoundException.class)

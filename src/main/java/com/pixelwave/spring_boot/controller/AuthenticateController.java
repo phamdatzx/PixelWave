@@ -34,7 +34,7 @@ public class AuthenticateController {
   }
 
   @PostMapping("/login")
-  public ResponseEntity<LoginResponse> login(@RequestBody LoginRequest loginRequest) {
+  public ResponseEntity<LoginResponse> login(@Valid @RequestBody LoginRequest loginRequest) {
     return ResponseEntity.ok(service.login(loginRequest));
   }
 
@@ -58,6 +58,6 @@ public class AuthenticateController {
         // check if user already exists in the database, and create a new user if not
         service.registerSocialUser(result);
         // generate access and refresh token for the user
-        return ResponseEntity.ok(service.socialLogin(new LoginRequest(result.get("email").toString(),null, result.get("name").toString())));
+        return ResponseEntity.ok(service.socialLogin(new LoginRequest(result.get("email").toString(), null)));
   }
 }
