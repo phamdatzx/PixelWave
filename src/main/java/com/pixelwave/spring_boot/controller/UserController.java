@@ -1,13 +1,18 @@
 package com.pixelwave.spring_boot.controller;
 
+import com.pixelwave.spring_boot.DTO.UploadImageDTO;
+import com.pixelwave.spring_boot.DTO.error.ErrorDTO;
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
+import com.pixelwave.spring_boot.DTO.user.UpdateUserProfileRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
+import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.service.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
 
@@ -87,5 +92,22 @@ public class UserController {
         return ResponseEntity.status(200).body(res);
     }
 
+    @PatchMapping(value = "/user/avatar", consumes = "multipart/form-data")
+    public ResponseEntity<?> updateAvatar(@AuthenticationPrincipal UserDetails userDetails,
+                                            @ModelAttribute UploadImageDTO imageDTO) {
+        userService.updateAvatar(userDetails, imageDTO.getFile());
+        return ResponseEntity.status(200).build();
+    }
+
+    @GetMapping("/user/me")
+    public ResponseEntity<UserResponseDTO> getMe(@AuthenticationPrincipal UserDetails userDetails) {
+        return ResponseEntity.ok(userService.getMe(userDetails));
+    }
+
+    @PatchMapping("/user/profile")
+    public ResponseEntity<UserResponseDTO> updateProfile(@AuthenticationPrincipal UserDetails userDetails,
+                                                       @RequestBody UpdateUserProfileRequestDTO updateDTO) {
+        return ResponseEntity.ok(userService.updateProfile(userDetails, updateDTO));
+    }
 
 }

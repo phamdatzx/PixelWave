@@ -1,7 +1,9 @@
 package com.pixelwave.spring_boot.service;
 
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
+import com.pixelwave.spring_boot.DTO.user.UpdateUserProfileRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
+import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.exception.ConflictException;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
@@ -13,6 +15,7 @@ import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -24,6 +27,7 @@ public class UserService {
     private final ModelMapper modelMapper;
     private final UserAddFriendRequestRepository userAddFriendRequestRepository;
     private final ChatService chatService;
+    private final S3Service s3Service;
 
     public UserDetailResponseDTO getUserById(Long userId) {
         var targetUser = userRepository.findById(userId)
@@ -175,5 +179,44 @@ public class UserService {
         return currentUser.getBlockedUsers().stream()
                 .map(user -> modelMapper.map(user, UserDetailResponseDTO.class))
                 .toList();
+    }
+
+    public void updateAvatar(UserDetails userDetails, MultipartFile file) {
+        // Get current user
+        User currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Upload file to S3
+        String avatarUrl = s3Service.uploadFile(file, "avatars");
+
+        // Update user's avatar URL
+        currentUser.setAvatar(avatarUrl);
+        userRepository.save(currentUser);
+    }
+
+    public UserResponseDTO getMe(UserDetails userDetails) {
+        var currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + ((User) userDetails).getId()));
+        return modelMapper.map(currentUser, UserResponseDTO.class);
+    }
+
+    public UserResponseDTO updateProfile(UserDetails userDetails, UpdateUserProfileRequestDTO updateDTO) {
+        var currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + ((User) userDetails).getId()));
+
+        if (updateDTO.getPhoneNumber() != null) {
+            currentUser.setPhoneNumber(updateDTO.getPhoneNumber());
+        }
+        if (updateDTO.getAge() != null) {
+            currentUser.setAge(updateDTO.getAge());
+        }
+        if (updateDTO.getGender() != null) {
+            currentUser.setGender(updateDTO.getGender());
+        }
+        if (updateDTO.getBio() != null) {
+            currentUser.setBio(updateDTO.getBio());
+        }
+
+        return modelMapper.map(userRepository.save(currentUser), UserResponseDTO.class);
     }
 }

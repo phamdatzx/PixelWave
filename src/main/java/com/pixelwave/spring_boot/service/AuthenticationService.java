@@ -106,12 +106,12 @@ public class AuthenticationService {
                       request.getPassword()
               )
       );
+
     } catch (Exception e) {
       throw new UnauthorizedException("Invalid username or password");
     }
 
     var user = (User)authenticate.getPrincipal();
-
     return getLoginResponse(user);
   }
 
