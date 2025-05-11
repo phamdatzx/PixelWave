@@ -100,7 +100,7 @@ public class AuthenticationService {
     Authentication authenticate = null;
 
     try {
-      authenticationManager.authenticate(
+      authenticate = authenticationManager.authenticate(
               new UsernamePasswordAuthenticationToken(
                       request.getUsername(),
                       request.getPassword()
@@ -111,7 +111,7 @@ public class AuthenticationService {
       throw new UnauthorizedException("Invalid username or password");
     }
 
-    var user = (User)authenticate.getPrincipal();
+    var user = (User) authenticate.getPrincipal();
     return getLoginResponse(user);
   }
 
