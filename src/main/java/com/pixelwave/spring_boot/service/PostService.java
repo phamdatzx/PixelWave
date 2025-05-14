@@ -1,10 +1,13 @@
 package com.pixelwave.spring_boot.service;
 
 import com.pixelwave.spring_boot.DTO.PostRecommendationDTO;
+import com.pixelwave.spring_boot.DTO.Image.ImageDTO;
+import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseWithoutUserDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponsesPageDTO;
 import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
+import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
 import com.pixelwave.spring_boot.model.Post;
 import com.pixelwave.spring_boot.model.User;
@@ -12,6 +15,7 @@ import com.pixelwave.spring_boot.repository.PostRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -19,8 +23,12 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +38,9 @@ public class PostService {
     private final PostRepository postRepository;
     private final ImageService imageService;
     private final UserRepository userRepository;
+
+    @Value("${post-image-directory}")
+    private String postImageDirectory;
 
     public PostResponseDTO uploadPost(UserDetails userDetails, UploadPostDTO uploadPostDTO) {
         // Get a managed User entity
@@ -48,7 +59,7 @@ public class PostService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        post.setImages(imageService.uploadImages(uploadPostDTO.getImages()));
+        post.setImages(imageService.uploadImages(uploadPostDTO.getImages(), postImageDirectory));
 
         return modelMapper.map(postRepository.save(post), PostResponseDTO.class);
     }
@@ -140,7 +151,64 @@ public class PostService {
 
     public List<PostRecommendationDTO> getFeed(UserDetails userDetails, int size) {
 
-        return postRepository.findRecommendedPosts(
-                ((User) userDetails).getId());
+        // return postRepository.findRecommendedPosts(
+        //         ((User) userDetails).getId());
+        return null;
+    }
+
+    public List<PostDetailDTO> getPostsWithImages(Long queryUserId, boolean isFriend, int limit) {
+        List<Object[]> results = postRepository.findPostsWithImages(queryUserId, isFriend, limit);
+        
+        // Use a Map to group by postId
+        Map<Long, PostDetailDTO> postsMap = new HashMap<>();
+        
+        for (int i = 0; i < results.size(); i++) {
+            Object[] row = results.get(i);
+            Long postId = (Long) row[0];
+            
+            // Get or create the post DTO
+            PostDetailDTO postDTO = postsMap.computeIfAbsent(postId, id -> {
+                PostDetailDTO dto = new PostDetailDTO();
+                dto.setId(id);
+                dto.setCaption((String) row[1]);
+                dto.setCreatedAt((Timestamp) row[2]);
+                dto.setPrivacySetting((String) row[3]);
+                
+                UserDTO userDTO = new UserDTO();
+                userDTO.setId((Long) row[6]);
+                userDTO.setFullName((String) row[7]);
+                userDTO.setAvatar((String) row[8]);
+                
+                dto.setPostUser(userDTO);
+
+                dto.setLikeCount(((Number) row[4]).longValue());
+                dto.setCommentCount(((Number) row[5]).longValue());
+                dto.setTaggedUser((Boolean) row[10]);
+                dto.setTagUserCount(((Number) row[11]).longValue());
+                
+                return dto;
+            });
+            
+            // Add image if not null
+            Long imageId = (Long) row[12];
+            String imageUrl = (String) row[13];
+            
+            if (imageId != null && imageUrl != null) {
+                ImageDTO imageDTO = new ImageDTO();
+                imageDTO.setId(imageId);
+                imageDTO.setUrl(imageUrl);
+                
+                // Check for duplicates before adding
+                boolean alreadyExists = postDTO.getImages().stream()
+                    .anyMatch(img -> img.getId().equals(imageId));
+                    
+                if (!alreadyExists) {
+                    postDTO.getImages().add(imageDTO);
+                }
+            }
+        }
+        
+        // Convert map to list and return
+        return new ArrayList<>(postsMap.values());
     }
 }

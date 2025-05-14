@@ -1,9 +1,11 @@
 package com.pixelwave.spring_boot.controller;
 
 import com.pixelwave.spring_boot.DTO.PostRecommendationDTO;
+import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponsesPageDTO;
 import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
+import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -52,8 +54,8 @@ public class PostController {
     }
 
     @GetMapping("/feed")
-    public ResponseEntity<List<PostRecommendationDTO>> getFeed(@AuthenticationPrincipal UserDetails userDetails,
+    public ResponseEntity<List<PostDetailDTO>> getFeed(@AuthenticationPrincipal UserDetails userDetails,
                                                                @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(postService.getFeed(userDetails, size));
+        return ResponseEntity.ok(postService.getPostsWithImages(((User) userDetails).getId(), true, size));
     }
 }

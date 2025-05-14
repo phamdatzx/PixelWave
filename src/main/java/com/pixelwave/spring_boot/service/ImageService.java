@@ -25,15 +25,15 @@ public class ImageService {
     private final S3Service s3Service;
     private final ModelMapper modelMapper;
 
-    public Image uploadImage(MultipartFile file) {
+    public Image uploadImage(MultipartFile file, String directory) {
         //validate image
         validateImage(file);
         //save image to s3
-        //String url = s3Service.uploadFile(file, null);
+        String url = s3Service.uploadFile(file, directory);
         return
                 Image.builder()
                 .size(file.getSize())
-                .url("url")
+                .url(url)
                 .build();
     }
 
@@ -68,7 +68,7 @@ public class ImageService {
     }
 
     @Transactional
-    public List<Image> uploadImages(List<MultipartFile> images) {
-        return images.stream().map(this::uploadImage).collect(Collectors.toList());
+    public List<Image> uploadImages(List<MultipartFile> images, String directory) {
+        return images.stream().map(file -> uploadImage(file, directory)).collect(Collectors.toList());
     }
 }
