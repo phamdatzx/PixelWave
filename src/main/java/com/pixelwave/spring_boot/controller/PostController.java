@@ -1,9 +1,8 @@
 package com.pixelwave.spring_boot.controller;
 
-import com.pixelwave.spring_boot.DTO.PostRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
-import com.pixelwave.spring_boot.DTO.post.PostResponsesPageDTO;
+import com.pixelwave.spring_boot.DTO.post.PostSimplePageDTO;
 import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.PostService;
@@ -25,14 +24,14 @@ public class PostController {
     private final PostService postService;
 
     @PostMapping("/post")
-    public ResponseEntity<PostResponseDTO> uploadPost(@AuthenticationPrincipal UserDetails userDetails ,
+    public ResponseEntity<PostDetailDTO> uploadPost(@AuthenticationPrincipal UserDetails userDetails ,
                                                       @Valid @ModelAttribute UploadPostDTO uploadPostDTO) {
         var postResponseDTO = postService.uploadPost(userDetails, uploadPostDTO);
         return ResponseEntity.status(HttpStatus.CREATED).body(postResponseDTO);
     }
 
     @GetMapping("/post/{postId}")
-    public ResponseEntity<PostResponseDTO> getPostById(@AuthenticationPrincipal UserDetails userDetails ,
+    public ResponseEntity<PostDetailDTO> getPostById(@AuthenticationPrincipal UserDetails userDetails ,
                                                        @PathVariable Long postId) {
         return ResponseEntity.ok(postService.getPostById(userDetails, postId));
     }
@@ -44,18 +43,18 @@ public class PostController {
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
     @GetMapping("/user/{userId}/posts")
-    public ResponseEntity<PostResponsesPageDTO> getUserPosts(@AuthenticationPrincipal UserDetails userDetails ,
-                                                             @PathVariable Long userId,
-                                                             @RequestParam(defaultValue = "1") int page,
-                                                             @RequestParam(defaultValue = "10") int size,
-                                                             @RequestParam(defaultValue = "createdAt") String sortBy,
-                                                             @RequestParam(defaultValue = "desc") String sortDirection){
+    public ResponseEntity<PostSimplePageDTO> getUserPosts(@AuthenticationPrincipal UserDetails userDetails ,
+                                                          @PathVariable Long userId,
+                                                          @RequestParam(defaultValue = "1") int page,
+                                                          @RequestParam(defaultValue = "10") int size,
+                                                          @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                          @RequestParam(defaultValue = "desc") String sortDirection){
         return ResponseEntity.ok(postService.getUserPosts(userDetails, userId, page, size, sortBy, sortDirection));
     }
 
     @GetMapping("/feed")
     public ResponseEntity<List<PostDetailDTO>> getFeed(@AuthenticationPrincipal UserDetails userDetails,
                                                                @RequestParam(defaultValue = "10") int size) {
-        return ResponseEntity.ok(postService.getPostsWithImages(((User) userDetails).getId(), true, size));
+        return ResponseEntity.ok(postService.getFeedPosts(((User) userDetails).getId(), true, size));
     }
 }

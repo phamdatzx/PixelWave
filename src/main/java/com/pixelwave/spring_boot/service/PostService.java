@@ -2,12 +2,9 @@ package com.pixelwave.spring_boot.service;
 
 import com.pixelwave.spring_boot.DTO.PostRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.Image.ImageDTO;
-import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
-import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
-import com.pixelwave.spring_boot.DTO.post.PostResponseWithoutUserDTO;
-import com.pixelwave.spring_boot.DTO.post.PostResponsesPageDTO;
-import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
+import com.pixelwave.spring_boot.DTO.post.*;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
+import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
 import com.pixelwave.spring_boot.model.Post;
 import com.pixelwave.spring_boot.model.User;
@@ -29,6 +26,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -42,7 +40,7 @@ public class PostService {
     @Value("${post-image-directory}")
     private String postImageDirectory;
 
-    public PostResponseDTO uploadPost(UserDetails userDetails, UploadPostDTO uploadPostDTO) {
+    public PostDetailDTO uploadPost(UserDetails userDetails, UploadPostDTO uploadPostDTO) {
         // Get a managed User entity
         User currentUser = userRepository.findById(((User) userDetails).getId())
                 .orElseThrow(() -> new RuntimeException("User not found"));
@@ -50,7 +48,6 @@ public class PostService {
         //Get tagged users
         List<User> taggedUsers = userRepository.findAllByIdIn(uploadPostDTO.getTaggedUserIds());
 
-        // Create the Post entity without saving it yet
         Post post = Post.builder()
                 .caption(uploadPostDTO.getCaption())
                 .privacySetting(uploadPostDTO.getPrivacySetting())
@@ -61,33 +58,47 @@ public class PostService {
 
         post.setImages(imageService.uploadImages(uploadPostDTO.getImages(), postImageDirectory));
 
-        return modelMapper.map(postRepository.save(post), PostResponseDTO.class);
+        return modelMapper.map(postRepository.save(post), PostDetailDTO.class);
     }
 
-    public PostResponseDTO getPostById(UserDetails userDetails,Long postId) {
+    public PostDetailDTO getPostById(UserDetails userDetails,Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
-        //check if the user is the post owner
+
+        //case when the user is not logged in
+        if(userDetails==null && !post.getPrivacySetting().equals("public")){
+            throw new ForbiddenException("You are not allowed to view this post");
+        }
+
+        //check if the user is not the post owner
         if(!post.getUser().getId().equals(((User) userDetails).getId())){
             //check privacy setting
             if(post.getPrivacySetting().equals("private")){
-                throw new ResourceNotFoundException("Post not found: " + postId);
+                throw new ForbiddenException("You are not allowed to view this post");
             }
             //check if the post is friend
             if(post.getPrivacySetting().equals("friend")){
                 //check if the user is a friend of the post owner
                 if(!post.getUser().isFriendWith(((User) userDetails).getId())){
-                    throw new ResourceNotFoundException("Post not found: " + postId);
+                    throw new ForbiddenException("You are not allowed to view this post");
                 }
             }
         }
 
-        var responseDTO = modelMapper.map(post, PostResponseDTO.class);
+        PostDetailDTO responseDTO = PostDetailDTO.builder()
+                .id(post.getId())
+                .caption(post.getCaption())
+                .createdAt(Timestamp.valueOf(post.getCreatedAt()))
+                .privacySetting(post.getPrivacySetting())
+                .postUser(modelMapper.map(post.getUser(), UserDTO.class))
+                .likeCount(post.getLikeCount())
+                .commentCount(post.getCommentCount())
+                .tagUserCount(post.getTaggedUsers().size())
+                .isTaggedUser(post.isTaggedUser((User) userDetails))
+                .isLiked(post.isLikedByUser((User) userDetails))
+                .build();
 
-        //get like status
-        if(post.isLikedByUser((User) userDetails)){
-            responseDTO.setLikedByUser(true);
-        }
+        responseDTO.setImages(post.getImages().stream().map(image -> modelMapper.map(image, ImageDTO.class)).collect(Collectors.toList()));
 
         return responseDTO;
     }
@@ -109,7 +120,7 @@ public class PostService {
         postRepository.save(post);
     }
 
-    public PostResponsesPageDTO getUserPosts(UserDetails userDetails, Long userId, int page, int size, String sortBy, String sortDirection) {
+    public PostSimplePageDTO getUserPosts(UserDetails userDetails, Long userId, int page, int size, String sortBy, String sortDirection) {
         // Validate user existence
         User findUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
@@ -126,37 +137,28 @@ public class PostService {
             postPage = postRepository.findByUserIdAndPrivacySetting(userId, "public", pageable);
         }
 
-        // Map posts to PostResponseDTO
-        List<PostResponseWithoutUserDTO> postResponseDTOs = postPage.getContent().stream()
+        List<PostSimpleDTO> postSimpleDTOs = postPage.getContent().stream()
                 .map(post -> {
-                    PostResponseWithoutUserDTO responseDTO = modelMapper.map(post, PostResponseWithoutUserDTO.class);
-                    // Set like status for the current user
-                    responseDTO.setLikedByUser(post.getLikedBy().stream()
-                            .anyMatch(user -> user.getId().equals(((User) userDetails).getId())));
-                    return responseDTO;
+                    PostSimpleDTO postSimpleDTO = PostSimpleDTO.builder().
+                            id(post.getId())
+                            .likeCount(post.getLikeCount())
+                            .commentCount(post.getCommentCount())
+                            .build();
+                    postSimpleDTO.setImageUrl(post.getImages().isEmpty() ? null : post.getImages().getFirst().getUrl());
+                    return postSimpleDTO;
                 })
                 .toList();
 
-        // Build and return the paginated response
-        return PostResponsesPageDTO.builder()
-                .posts(postResponseDTOs)
-                .currentPage(postPage.getNumber() + 1)
+        return PostSimplePageDTO.builder()
+                .posts(postSimpleDTOs)
                 .totalPages(postPage.getTotalPages())
                 .totalElements(postPage.getTotalElements())
                 .pageSize(postPage.getSize())
+                .currentPage(postPage.getNumber() + 1)
                 .build();
-
     }
 
-
-    public List<PostRecommendationDTO> getFeed(UserDetails userDetails, int size) {
-
-        // return postRepository.findRecommendedPosts(
-        //         ((User) userDetails).getId());
-        return null;
-    }
-
-    public List<PostDetailDTO> getPostsWithImages(Long queryUserId, boolean isFriend, int limit) {
+    public List<PostDetailDTO> getFeedPosts(Long queryUserId, boolean isFriend, int limit) {
         List<Object[]> results = postRepository.findPostsWithImages(queryUserId, isFriend, limit);
         
         // Use a Map to group by postId
@@ -181,10 +183,11 @@ public class PostService {
                 
                 dto.setPostUser(userDTO);
 
-                dto.setLikeCount(((Number) row[4]).longValue());
-                dto.setCommentCount(((Number) row[5]).longValue());
+                dto.setLikeCount(((Number) row[4]).intValue());
+                dto.setCommentCount(((Number) row[5]).intValue());
                 dto.setTaggedUser((Boolean) row[10]);
-                dto.setTagUserCount(((Number) row[11]).longValue());
+                dto.setTagUserCount(((Number) row[11]).intValue());
+                dto.setLiked((Boolean) row[14]);
                 
                 return dto;
             });

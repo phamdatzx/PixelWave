@@ -11,8 +11,8 @@ import java.util.List;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class PostResponsesPageDTO {
-    List<PostResponseWithoutUserDTO> posts;
+public class PostSimplePageDTO {
+    List<PostSimpleDTO> posts;
     int totalPages;
     long totalElements;
     int pageSize;

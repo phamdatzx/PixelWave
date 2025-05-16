@@ -79,5 +79,10 @@ public class Post {
         return this.getLikedBy().stream()
                 .anyMatch(likedUser -> likedUser.getId().equals(user.getId()));
     }
+
+    public boolean isTaggedUser(User user) {
+        return this.getTaggedUsers().stream()
+                .anyMatch(taggedUser -> taggedUser.getId().equals(user.getId()));
+    }
 }
 

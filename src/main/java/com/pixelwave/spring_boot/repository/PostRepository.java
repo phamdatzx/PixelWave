@@ -34,12 +34,14 @@ SELECT
     CASE WHEN pt_you.post_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_tag_you,
     COUNT(DISTINCT pt_all.user_id) AS tag_user_count,
     img.id AS image_id,
-    img.url AS image_url
+    img.url AS image_url,
+    CASE WHEN pl.post_id IS NOT NULL THEN TRUE ELSE FALSE END AS is_liked
 FROM post p
          JOIN users u ON p.post_user_id = u.id
          LEFT JOIN post_view pv ON p.id = pv.post_id AND pv.user_id = :queryUserId
          LEFT JOIN post_tag pt_you ON p.id = pt_you.post_id AND pt_you.user_id = :queryUserId
          LEFT JOIN post_tag pt_all ON p.id = pt_all.post_id
+         LEFT JOIN post_like pl ON p.id = pl.post_id AND pl.user_id = :queryUserId
          LEFT JOIN image img ON p.id = img.post_id
 WHERE
     (
@@ -64,7 +66,8 @@ GROUP BY
     u.full_name,
     is_tag_you,
     img.id,
-    img.url
+    img.url,
+    is_liked
 ORDER BY view_count DESC, p.created_at DESC
 LIMIT :limit;
         """, nativeQuery = true)
