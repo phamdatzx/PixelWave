@@ -38,14 +38,10 @@ public class Comment {
     @OneToMany(mappedBy = "comment", cascade = CascadeType.ALL)
     private List<Image> images = new ArrayList<>();
 
-    @ManyToMany
-    @JoinTable(
-            name = "comment_reply",
-            joinColumns = @JoinColumn(name = "comment_id"),
-            inverseJoinColumns = @JoinColumn(name = "reply_comment_id")
-    )
-    private List<Comment> replies = new ArrayList<>();
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "parent_id")
+    private Comment parent;
 
-    @ManyToMany(mappedBy = "replies")
-    private List<Comment> parentComments = new ArrayList<>();
+    @OneToMany(mappedBy = "parent", cascade = CascadeType.ALL)
+    private List<Comment> replies = new ArrayList<>();
 }
