@@ -214,4 +214,27 @@ public class PostService {
         // Convert map to list and return
         return new ArrayList<>(postsMap.values());
     }
+
+    public boolean canAccessPost(Long userId, Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
+
+        // Check if the user is the post owner
+        if (post.getUser().getId().equals(userId)) {
+            return true;
+        }
+
+        // Check post privacy setting
+        switch (post.getPrivacySetting()) {
+            case "public":
+                return true;
+            case "friend":
+                // Check if the user is a friend of the post owner
+                return post.getUser().isFriendWith(userId);
+            case "private":
+                return false;
+            default:
+                return false;
+        }
+    }
 }

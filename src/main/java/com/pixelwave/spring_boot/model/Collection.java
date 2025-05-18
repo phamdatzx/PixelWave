@@ -40,5 +40,6 @@ public class Collection {
             joinColumns = @JoinColumn(name = "collection_id"),
             inverseJoinColumns = @JoinColumn(name = "post_id")
     )
+    @Builder.Default
     private List<Post> posts = new ArrayList<>();
 }
