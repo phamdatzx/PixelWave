@@ -5,6 +5,7 @@ import com.pixelwave.spring_boot.DTO.auth.LoginResponse;
 import com.pixelwave.spring_boot.DTO.auth.RegisterRequest;
 import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.exception.ConflictException;
+import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.InvalidToken;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
 import com.pixelwave.spring_boot.exception.UnauthorizedException;
@@ -25,6 +26,7 @@ import org.springframework.http.client.HttpComponentsClientHttpRequestFactory;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.oauth2.client.OAuth2AuthorizedClientManager;
 import org.springframework.stereotype.Service;
@@ -223,5 +225,17 @@ public class AuthenticationService {
             .role(Role.USER)
             .build();
     userRepository.save(user);
+  }
+
+  public void logout(UserDetails userDetails, String refreshToken) {
+    var token = tokenRepository.findByToken(refreshToken)
+        .orElseThrow(() -> new InvalidToken("Refresh token not found in database"));
+    
+    if (!token.getUser().getUsername().equals(userDetails.getUsername())) {
+      throw new ForbiddenException("You don't have permission to revoke this token");
+    }
+    
+    token.setRevoked(true);
+    tokenRepository.save(token);
   }
 }

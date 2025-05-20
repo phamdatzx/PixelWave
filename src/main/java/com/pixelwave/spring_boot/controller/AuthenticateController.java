@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.net.URI;
 import java.util.Map;
@@ -59,5 +61,13 @@ public class AuthenticateController {
         service.registerSocialUser(result);
         // generate access and refresh token for the user
         return ResponseEntity.ok(service.socialLogin(new LoginRequest(result.get("email").toString(), null)));
+  }
+
+  @PostMapping("/logout")
+  public ResponseEntity<Void> logout(
+      @AuthenticationPrincipal UserDetails userDetails,
+      @RequestBody RefreshTokenDTO refreshTokenDTO) {
+    service.logout(userDetails, refreshTokenDTO.getRefreshToken());
+    return ResponseEntity.noContent().build();
   }
 }

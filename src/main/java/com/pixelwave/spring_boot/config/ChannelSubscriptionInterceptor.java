@@ -16,7 +16,7 @@ import java.security.Principal;
 @RequiredArgsConstructor
 public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
 
-    private final ChannelService channelService; // Add 'final' since using @RequiredArgsConstructor
+    private final ChannelService channelService;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -29,24 +29,10 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
                 // Extract channel ID from destination
                 String channelId = destination.replace("/topic/channel/", "");
 
-                // Get user from auth object
-                Principal principal = accessor.getUser();
-                if (principal == null) {
-                    throw new IllegalArgumentException("User not authenticated");
-                }
+                String token = accessor.getNativeHeader("Authorization").get(0);
 
-                // Convert Principal to userid
-                String userId;
-                if (principal instanceof Authentication) {
-                    userId = ((Authentication) principal).getName();
-                } else {
-                    userId = principal.getName();
-                }
-
-                // Check if user has access to this channel
-                if (!channelService.canUserAccessChannel(userId, channelId)) {
-                    throw new IllegalArgumentException("No permission to access this channel");
-                }
+                System.out.println("Token: " + token);
+                //check check
             }
         }
 

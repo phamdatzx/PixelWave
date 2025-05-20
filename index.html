@@ -286,28 +286,36 @@
           // Optional: Disable debug logging
           stompClient.debug = null;
 
+          const headers = {
+            Authorization:
+              "Bearer " +
+              "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0M0BnbWFpbC5jb20iLCJpYXQiOjE3NDQ1NDE2MDEsImV4cCI6MTk3NDQ1NDE2MDF9.iG7qJl4BY0w47N3AVz86ph3zhwcuX3i5yriixwjHvpo",
+          };
           // Connect to STOMP server
           stompClient.connect(
-            {},
+            headers,
             // Success callback
             function (frame) {
               console.log("Connected to WebSocket: " + frame);
 
-              // Subscribe to channel topic
               subscription = stompClient.subscribe(
                 `/topic/channel/${channelId}`,
-                onMessageReceived
+                onMessageReceived,
+                {
+                  Authorization:
+                    "Bearer " +
+                    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0M0BnbWFpbC5jb20iLCJpYXQiOjE3NDQ1NDE2MDEsImV4cCI6MTk3NDQ1NDE2MDF9.iG7qJl4BY0w47N3AVz86ph3zhwcuX3i5yriixwjHvpo",
+                }
               );
 
-              // Send join message
-              stompClient.send(
-                "/app/channel/subscribe",
-                {},
-                JSON.stringify({
-                  userId: userId,
-                  channelId: channelId,
-                })
-              );
+              // stompClient.send(
+              //   "/app/channel/subscribe",
+              //   {},
+              //   JSON.stringify({
+              //     userId: userId,
+              //     channelId: channelId,
+              //   })
+              // );
 
               // Update UI for connected state
               setStatus("connected", "Connected to channel");
