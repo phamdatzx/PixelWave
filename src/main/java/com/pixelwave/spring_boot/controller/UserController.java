@@ -5,8 +5,11 @@ import com.pixelwave.spring_boot.DTO.error.ErrorDTO;
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UpdateUserProfileRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
+import com.pixelwave.spring_boot.DTO.user.UserRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.service.UserService;
+
+import jakarta.websocket.server.PathParam;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -108,6 +111,11 @@ public class UserController {
     public ResponseEntity<UserResponseDTO> updateProfile(@AuthenticationPrincipal UserDetails userDetails,
                                                        @RequestBody UpdateUserProfileRequestDTO updateDTO) {
         return ResponseEntity.ok(userService.updateProfile(userDetails, updateDTO));
+    }
+
+    @GetMapping("/user/recommendations")
+    public ResponseEntity<List<UserRecommendationDTO>> getRecommendedUsers(@AuthenticationPrincipal UserDetails userDetails, @PathParam("limit") int limit) {
+        return ResponseEntity.ok(userService.getRecommendedUsers(userDetails,limit));
     }
 
 }

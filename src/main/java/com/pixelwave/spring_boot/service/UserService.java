@@ -3,6 +3,7 @@ package com.pixelwave.spring_boot.service;
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UpdateUserProfileRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
+import com.pixelwave.spring_boot.DTO.user.UserRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.exception.ConflictException;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
@@ -18,7 +19,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.time.LocalDateTime;
-import java.util.List;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -218,5 +220,49 @@ public class UserService {
         }
 
         return modelMapper.map(userRepository.save(currentUser), UserResponseDTO.class);
+    }
+
+    public List<UserRecommendationDTO> getRecommendedUsers(UserDetails userDetails, int limit) {
+        User currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        // Get all users except current user and their friends
+        List<User> allUsers = userRepository.findAll();
+        Set<Long> currentUserFriendIds = currentUser.getFriends().stream()
+                .map(User::getId)
+                .collect(Collectors.toSet());
+        currentUserFriendIds.add(currentUser.getId());
+
+        // Filter out current user and their friends
+        List<User> potentialRecommendations = allUsers.stream()
+                .filter(user -> !currentUserFriendIds.contains(user.getId()))
+                .collect(Collectors.toList());
+
+        // Calculate mutual friends count for each potential recommendation
+        Map<User, Integer> mutualFriendsCount = new HashMap<>();
+        for (User potentialFriend : potentialRecommendations) {
+            Set<Long> potentialFriendFriendIds = potentialFriend.getFriends().stream()
+                    .map(User::getId)
+                    .collect(Collectors.toSet());
+            
+            // Count mutual friends
+            int mutualCount = (int) currentUser.getFriends().stream()
+                    .filter(friend -> potentialFriendFriendIds.contains(friend.getId()))
+                    .count();
+            
+            mutualFriendsCount.put(potentialFriend, mutualCount);
+        }
+
+        // Sort by mutual friends count (descending) and get top 9
+        return mutualFriendsCount.entrySet().stream()
+                .sorted(Map.Entry.<User, Integer>comparingByValue().reversed())
+                .limit(limit)
+                .map(entry -> UserRecommendationDTO.builder()
+                        .id(entry.getKey().getId())
+                        .fullName(entry.getKey().getFullName())
+                        .avatar(entry.getKey().getAvatar())
+                        .mutualFriendsCount(entry.getValue())
+                        .build())
+                .collect(Collectors.toList());
     }
 }

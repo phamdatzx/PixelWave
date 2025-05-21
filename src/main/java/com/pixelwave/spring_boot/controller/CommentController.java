@@ -23,7 +23,7 @@ public class CommentController {
 
     @PostMapping
     public ResponseEntity<CommentResponseDTO> createComment(
-            @RequestBody CommentRequestDTO commentRequestDTO,
+            @ModelAttribute CommentRequestDTO commentRequestDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(commentService.createComment(commentRequestDTO, ((User) userDetails).getId()));
     }
@@ -31,7 +31,7 @@ public class CommentController {
     @PutMapping("/{commentId}")
     public ResponseEntity<CommentResponseDTO> updateComment(
             @PathVariable Long commentId,
-            @RequestBody CommentRequestDTO commentRequestDTO,
+            @ModelAttribute CommentRequestDTO commentRequestDTO,
             @AuthenticationPrincipal UserDetails userDetails) {
         return ResponseEntity.ok(commentService.updateComment(commentId, commentRequestDTO, ((User) userDetails).getId()));
     }

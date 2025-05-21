@@ -113,20 +113,29 @@ public class PostService {
         return responseDTO;
     }
 
-    public void toggleLikePost(UserDetails userDetails, Long postId) {
+    public void likePost(UserDetails userDetails, Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
+
+        // Check if the user has already liked the post
+        User currentUser = (User) userDetails;
+        if (!post.isLikedByUser(currentUser)) {
+            post.getLikedBy().add(currentUser);
+            post.setLikeCount(post.getLikeCount() + 1);
+        } 
+        postRepository.save(post);
+    }
+
+    public void unlikePost(UserDetails userDetails, Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
 
         // Check if the user has already liked the post
         User currentUser = (User) userDetails;
         if (post.isLikedByUser(currentUser)) {
-            post.getLikedBy().remove(currentUser);
-            post.setLikeCount(post.getLikeCount() - 1);
-        } else {
             post.getLikedBy().add(currentUser);
-            post.setLikeCount(post.getLikeCount() + 1);
-        }
-
+            post.setLikeCount(post.getLikeCount() - 1);
+        } 
         postRepository.save(post);
     }
 

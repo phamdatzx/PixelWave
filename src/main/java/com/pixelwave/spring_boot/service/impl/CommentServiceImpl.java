@@ -1,5 +1,6 @@
 package com.pixelwave.spring_boot.service.impl;
 
+import com.google.api.client.util.Value;
 import com.pixelwave.spring_boot.DTO.post.CommentRequestDTO;
 import com.pixelwave.spring_boot.DTO.post.CommentResponseDTO;
 import com.pixelwave.spring_boot.DTO.post.ImageDTO;
@@ -7,11 +8,14 @@ import com.pixelwave.spring_boot.DTO.post.UserDTO;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
 import com.pixelwave.spring_boot.model.Comment;
+import com.pixelwave.spring_boot.model.Image;
 import com.pixelwave.spring_boot.model.Post;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.repository.CommentRepository;
 import com.pixelwave.spring_boot.repository.PostRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
+import com.pixelwave.spring_boot.service.ImageService;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -28,6 +32,10 @@ public class CommentServiceImpl {
     private final CommentRepository commentRepository;
     private final PostRepository postRepository;
     private final UserRepository userRepository;
+    private final ImageService imageService;
+
+    @Value("${comment-image-directory}")
+    private String commentImageDirectory;
 
     @Transactional
     public CommentResponseDTO createComment(CommentRequestDTO commentRequestDTO, Long userId) {
@@ -53,6 +61,15 @@ public class CommentServiceImpl {
             parentComment.getReplies().add(comment);
         }
 
+        //upload images
+        if(commentRequestDTO.getImages() != null) {
+            List<Image> images = imageService.uploadImages(commentRequestDTO.getImages(), commentImageDirectory);
+            for(Image image : images) {
+                image.setComment(comment);
+            }
+            comment.setImages(images);
+        }
+        
         Comment savedComment = commentRepository.save(comment);
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
@@ -71,6 +88,16 @@ public class CommentServiceImpl {
 
         comment.setContent(commentRequestDTO.getContent());
         Comment updatedComment = commentRepository.save(comment);
+
+        //upload images
+        if(commentRequestDTO.getImages() != null) {
+                    List<Image> images = imageService.uploadImages(commentRequestDTO.getImages(), commentImageDirectory);
+                    for(Image image : images) {
+                        image.setComment(comment);
+                    }
+                    comment.setImages(images);
+        }
+
         return mapToCommentResponseDTO(updatedComment);
     }
 

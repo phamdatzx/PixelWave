@@ -36,12 +36,20 @@ public class PostController {
         return ResponseEntity.ok(postService.getPostById(userDetails, postId));
     }
 
-    @PostMapping("/post/{postId}/toggle-like")
-    public ResponseEntity<Void> toggleLikePost(@AuthenticationPrincipal UserDetails userDetails ,
+    @PostMapping("/post/{postId}/like")
+    public ResponseEntity<Void> likePost(@AuthenticationPrincipal UserDetails userDetails ,
                                           @PathVariable Long postId) {
-        postService.toggleLikePost(userDetails, postId);
+        postService.likePost(userDetails, postId);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
+
+    @PostMapping("/post/{postId}/unlike")
+    public ResponseEntity<Void> unlikePost(@AuthenticationPrincipal UserDetails userDetails ,
+                                          @PathVariable Long postId) {
+        postService.unlikePost(userDetails, postId);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
     @GetMapping("/user/{userId}/posts")
     public ResponseEntity<PostSimplePageDTO> getUserPosts(@AuthenticationPrincipal UserDetails userDetails ,
                                                           @PathVariable Long userId,
