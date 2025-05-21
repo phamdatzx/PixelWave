@@ -1,14 +1,17 @@
 package com.pixelwave.spring_boot.service;
 
+import com.pixelwave.spring_boot.DTO.ImageDataDTO;
 import com.pixelwave.spring_boot.DTO.PostRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.Image.ImageDTO;
 import com.pixelwave.spring_boot.DTO.post.*;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
+import com.pixelwave.spring_boot.model.Image;
 import com.pixelwave.spring_boot.model.Post;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.repository.PostRepository;
+import com.pixelwave.spring_boot.repository.TagRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -36,6 +39,8 @@ public class PostService {
     private final PostRepository postRepository;
     private final ImageService imageService;
     private final UserRepository userRepository;
+    private final ImageTagService imageTagService;
+    private final TagRepository tagRepository;
 
     @Value("${post-image-directory}")
     private String postImageDirectory;
@@ -57,6 +62,11 @@ public class PostService {
                 .build();
 
         post.setImages(imageService.uploadImages(uploadPostDTO.getImages(), postImageDirectory));
+
+        for(Image image : post.getImages()){
+            ImageDataDTO res = imageTagService.processImageFromUrlAndGetTags(image.getUrl());
+            image.setTags(res.getTags().stream().map(tag -> tagRepository.findByName(tag).orElse(null)).collect(Collectors.toList()));
+        }
 
         return modelMapper.map(postRepository.save(post), PostDetailDTO.class);
     }

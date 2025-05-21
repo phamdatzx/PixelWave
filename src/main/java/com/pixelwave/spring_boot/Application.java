@@ -1,18 +1,28 @@
 package com.pixelwave.spring_boot;
 
+import com.pixelwave.spring_boot.DTO.ImageDataDTO;
 import com.pixelwave.spring_boot.model.Image;
-import com.pixelwave.spring_boot.model.Post;
+import com.pixelwave.spring_boot.model.Tag;
+import com.pixelwave.spring_boot.repository.ImageRepository;
+import com.pixelwave.spring_boot.repository.TagRepository;
+import com.pixelwave.spring_boot.service.ImageTagService;
+
+import lombok.RequiredArgsConstructor;
+
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
-import org.springframework.web.multipart.MultipartFile;
 
-import java.util.Set;
 import java.util.stream.Collectors;
 
 @SpringBootApplication
+@RequiredArgsConstructor
 public class Application {
+
+	private final TagRepository tagRepository;
+	private final ImageTagService imageTagService;
+	private final ImageRepository imageRepository;
 
 	public static void main(String[] args) {
 		SpringApplication.run(Application.class, args);
@@ -21,36 +31,24 @@ public class Application {
 	@Bean
 	public CommandLineRunner commandLineRunner() {
 		return args -> {
-			// This is where you can add any startup logic if needed
-			System.out.println("Application started successfully!");
-
-			Image image1 = Image.builder()
-					.id(1L)
-					.size(1024L)
-					.url("http://example.com/image1.jpg")
-					.build();
-			Image image2 = Image.builder()
-					.id(2L)
-					.size(2048L)
-					.url("http://example.com/image2.jpg")
-					.build();
-			Set<Image> images = Set.of(image1, image2);
-
-			Post post = new Post();
-
-			images.stream()
-					.map(image -> uploadImage( post))
-					.collect(Collectors.toSet());
-
-			System.out.println(post.getImages());
+//			for( long i = 241; i < 264; i++){
+//				try{
+//					Image image = imageRepository.findById(i).orElse(null);
+//					if(image != null){
+//							ImageDataDTO res = imageTagService.processImageFromUrlAndGetTags(image.getUrl());
+//							image.setTags(res.getTags().stream().map(tag -> tagRepository.findByName(tag).orElse(null)).collect(Collectors.toList()));
+//							imageRepository.save(image);
+//					}
+//					else{
+//						System.out.println("Image not found " + i);
+//					}
+//
+//				}
+//				catch(Exception e){
+//					System.out.println("Error processing image " + i);
+//				}
+//
+//			}
 		};
 	}
-
-	public Image uploadImage( Post post) {
-
-		return Image.builder()
-				.post(post)
-				.build();
-	}
-
 }

@@ -1,5 +1,7 @@
 package com.pixelwave.spring_boot.model;
 
+import java.util.List;
+
 import jakarta.persistence.*;
 import lombok.*;
 
@@ -30,5 +32,8 @@ public class Image {
     @ManyToOne
     @JoinColumn(name = "message_id")
     private Message message;
+
+    @ManyToMany
+    private List<Tag> tags;
 
 }
