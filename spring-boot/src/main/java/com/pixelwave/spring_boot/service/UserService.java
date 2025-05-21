@@ -2,6 +2,7 @@ package com.pixelwave.spring_boot.service;
 
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UpdateUserProfileRequestDTO;
+import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
 import com.pixelwave.spring_boot.DTO.user.UserRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
@@ -93,6 +94,8 @@ public class UserService {
                 .status("PENDING")
                 .createdAt(LocalDateTime.now())
                 .build();
+
+        targetUser.getFollowers().add(currentUser);
 
         userAddFriendRequestRepository.save(addFriendRequest);
     }
@@ -265,4 +268,38 @@ public class UserService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    public List<UserDTO> getFriends(Long userID, String searchTerm) {
+        User currentUser = userRepository.findById(userID)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        List<User> friends;
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            friends = userRepository.findFriendsByUserIdAndSearchTerm(currentUser.getId(), searchTerm.trim());
+        } else {
+            friends = currentUser.getFriends();
+        }
+
+        return friends.stream()
+                .map(friend -> modelMapper.map(friend, UserDTO.class))
+                .collect(Collectors.toList());
+    }
+
+    public List<UserDTO> getFollowers(Long userID, String searchTerm) {
+        User currentUser = userRepository.findById(userID)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        List<User> followers;
+        if (searchTerm != null && !searchTerm.trim().isEmpty()) {
+            followers = userRepository.findFollowersByUserIdAndSearchTerm(currentUser.getId(), searchTerm.trim());
+        } else {
+            followers = currentUser.getFriends();
+        }
+
+        return followers.stream()
+                .map(friend -> modelMapper.map(friend, UserDTO.class))
+                .collect(Collectors.toList());
+    }
+
+
 }

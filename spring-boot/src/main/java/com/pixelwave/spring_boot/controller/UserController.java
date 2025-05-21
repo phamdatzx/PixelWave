@@ -4,6 +4,7 @@ import com.pixelwave.spring_boot.DTO.UploadImageDTO;
 import com.pixelwave.spring_boot.DTO.error.ErrorDTO;
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UpdateUserProfileRequestDTO;
+import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
 import com.pixelwave.spring_boot.DTO.user.UserRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
@@ -116,6 +117,20 @@ public class UserController {
     @GetMapping("/user/recommendations")
     public ResponseEntity<List<UserRecommendationDTO>> getRecommendedUsers(@AuthenticationPrincipal UserDetails userDetails, @PathParam("limit") int limit) {
         return ResponseEntity.ok(userService.getRecommendedUsers(userDetails,limit));
+    }
+
+    @GetMapping("/user/{userId}/friends")
+    public ResponseEntity<List<UserDTO>> getFriends(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String searchTerm) {
+        return ResponseEntity.ok(userService.getFriends(userId, searchTerm));
+    }
+
+    @GetMapping("/user/{userId}/followers")
+    public ResponseEntity<List<UserDTO>> getFollowers(
+            @PathVariable Long userId,
+            @RequestParam(required = false) String searchTerm) {
+        return ResponseEntity.ok(userService.getFollowers(userId, searchTerm));
     }
 
 }

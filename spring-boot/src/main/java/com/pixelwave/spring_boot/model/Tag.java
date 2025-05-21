@@ -5,6 +5,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Table(name = "tag")
 @Data
@@ -17,4 +20,12 @@ public class Tag {
 
     @Column(nullable = false, unique = true)
     private String name;
+
+    @ManyToMany
+    @JoinTable(
+        name = "image_tags",
+        joinColumns = @JoinColumn(name = "tags_id"),
+        inverseJoinColumns = @JoinColumn(name = "image_id")
+)
+    private List<Image> images = new ArrayList<>();
 } 
