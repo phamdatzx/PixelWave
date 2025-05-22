@@ -7,14 +7,12 @@ import com.pixelwave.spring_boot.DTO.post.ImageDTO;
 import com.pixelwave.spring_boot.DTO.post.UserDTO;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
-import com.pixelwave.spring_boot.model.Comment;
-import com.pixelwave.spring_boot.model.Image;
-import com.pixelwave.spring_boot.model.Post;
-import com.pixelwave.spring_boot.model.User;
+import com.pixelwave.spring_boot.model.*;
 import com.pixelwave.spring_boot.repository.CommentRepository;
 import com.pixelwave.spring_boot.repository.PostRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
 import com.pixelwave.spring_boot.service.ImageService;
+import com.pixelwave.spring_boot.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -33,6 +31,7 @@ public class CommentServiceImpl {
     private final PostRepository postRepository;
     private final UserRepository userRepository;
     private final ImageService imageService;
+    private final NotificationService notificationService;
 
     @Value("${comment-image-directory}")
     private String commentImageDirectory;
@@ -44,6 +43,7 @@ public class CommentServiceImpl {
         Post post = postRepository.findById(commentRequestDTO.getPostId())
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
+        //create comment and save to db
         Comment comment = Comment.builder()
                 .content(commentRequestDTO.getContent())
                 .user(user)
@@ -73,6 +73,15 @@ public class CommentServiceImpl {
         Comment savedComment = commentRepository.save(comment);
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
+
+        //trigger notification
+        //notify the owner of the comment be replied to if exists
+        if(commentRequestDTO.getParentCommentId() != null) {
+            var parrentComment = commentRepository.findById(commentRequestDTO.getParentCommentId()).orElseThrow(() -> new ResourceNotFoundException("Parent comment not found"));
+            notificationService.sendNotification(parrentComment.getUser(), user, NotificationType.REPLY_TO_COMMENT,savedComment.getId());
+        }
+        //notify the owner of the post
+        notificationService.sendNotification(post.getUser(), user, NotificationType.NEW_COMMENT, savedComment.getId());
 
         return mapToCommentResponseDTO(savedComment);
     }

@@ -8,11 +8,13 @@ import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
 import com.pixelwave.spring_boot.model.Image;
+import com.pixelwave.spring_boot.model.NotificationType;
 import com.pixelwave.spring_boot.model.Post;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.repository.PostRepository;
 import com.pixelwave.spring_boot.repository.TagRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Value;
@@ -41,6 +43,7 @@ public class PostService {
     private final UserRepository userRepository;
     private final ImageTagService imageTagService;
     private final TagRepository tagRepository;
+    private final NotificationService notificationService;
 
     @Value("${post-image-directory}")
     private String postImageDirectory;
@@ -66,6 +69,16 @@ public class PostService {
         for(Image image : post.getImages()){
             ImageDataDTO res = imageTagService.processImageFromUrlAndGetTags(image.getUrl());
             image.setTags(res.getTags().stream().map(tag -> tagRepository.findByName(tag).orElse(null)).collect(Collectors.toList()));
+        }
+
+        //trigger notification for all followers
+        for (User follower : currentUser.getFollowers()) {
+            notificationService.sendNotification(follower, currentUser, NotificationType.NEW_POST, post.getId());
+        }
+
+        //trigger notification for tagged users
+        for(User taggedUser : taggedUsers) {
+            notificationService.sendNotification(taggedUser, currentUser, NotificationType.TAGGED_IN_POST, post.getId());
         }
 
         return modelMapper.map(postRepository.save(post), PostDetailDTO.class);
@@ -113,11 +126,12 @@ public class PostService {
         return responseDTO;
     }
 
+    @Transactional
     public void likePost(UserDetails userDetails, Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
 
-        // Check if the user has already liked the post
+        // Check if the user hasn't already liked the post
         User currentUser = (User) userDetails;
         if (!post.isLikedByUser(currentUser)) {
             post.getLikedBy().add(currentUser);
@@ -133,7 +147,7 @@ public class PostService {
         // Check if the user has already liked the post
         User currentUser = (User) userDetails;
         if (post.isLikedByUser(currentUser)) {
-            post.getLikedBy().add(currentUser);
+            post.getLikedBy().remove(currentUser);
             post.setLikeCount(post.getLikeCount() - 1);
         } 
         postRepository.save(post);

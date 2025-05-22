@@ -12,6 +12,9 @@ import com.pixelwave.spring_boot.repository.UserRepository;
 import com.pixelwave.spring_boot.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -31,36 +34,56 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     @Transactional
-    public void sendNotification(User recipient, User sender, NotificationType type, String content, Long referenceId) {
+    public void sendNotification(User recipient, User sender, NotificationType type, Long referenceId) {
         Notification notification = Notification.builder()
                 .recipient(recipient)
                 .sender(sender)
                 .type(type)
-                .content(content)
                 .referenceId(referenceId)
+                .content(generateContent(recipient, sender, type))
                 .build();
 
         notificationRepository.save(notification);
 
-        // Convert to DTO for WebSocket message
-        NotificationDTO notificationDTO = convertToDTO(notification);
-
-        // Send notification to specific user
-        messagingTemplate.convertAndSendToUser(
-                recipient.getUsername(),
-                "/queue/notifications",
-                notificationDTO
-        );
+//        // Convert to DTO for WebSocket message
+//        NotificationDTO notificationDTO = convertToDTO(notification);
+//
+//        // Send notification to specific user
+//        messagingTemplate.convertAndSendToUser(
+//                recipient.getUsername(),
+//                "/queue/notifications",
+//                notificationDTO
+//        );
     }
 
-    @Override
-    public List<NotificationDTO> getUserNotifications(UserDetails userDetails) {
-        User user = (User) userDetails;
-        return notificationRepository.findByRecipientOrderByCreatedAtDesc(user)
-                .stream()
-                .map(this::convertToDTO)
-                .collect(Collectors.toList());
+    @Transactional(readOnly = true)
+    public Page<NotificationDTO> getUserNotifications(Long userId, Boolean isRead, Pageable pageable) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with id: " + userId));
+
+        // Use Page<Notification> directly from repository to support efficient pagination
+        Page<Notification> notificationPage;
+
+        if (isRead != null) {
+            notificationPage = notificationRepository.findByRecipientAndIsReadOrderByCreatedAtDesc(user, isRead, pageable);
+        } else {
+            notificationPage = notificationRepository.findByRecipientOrderByCreatedAtDesc(user, pageable);
+        }
+
+        // Map Notification entities to NotificationDTOs
+        Page<NotificationDTO> dtoPage = notificationPage.map(notification -> NotificationDTO.builder()
+                .id(notification.getId())
+                .sender(modelMapper.map(notification.getSender(),UserDTO.class)) // Assuming you have a mapper or static method
+                .type(notification.getType())
+                .content(notification.getContent())
+                .isRead(notification.isRead())
+                .createdAt(notification.getCreatedAt())
+                .referenceId(notification.getReferenceId())
+                .build());
+
+        return dtoPage;
     }
+
 
     @Override
     @Transactional
@@ -104,5 +127,17 @@ public class NotificationServiceImpl implements NotificationService {
         NotificationDTO dto = modelMapper.map(notification, NotificationDTO.class);
         dto.setSender(modelMapper.map(notification.getSender(), UserDTO.class));
         return dto;
+    }
+
+    private String generateContent(User recipient, User sender, NotificationType type){
+        return switch (type) {
+            case NEW_POST -> sender.getFullName() + " has created a new post.";
+            case NEW_COMMENT -> sender.getFullName() + " has commented on your post.";
+            case NEW_FRIEND_REQUEST -> sender.getFullName() + " has sent you a friend request.";
+            case FRIEND_REQUEST_ACCEPTED -> sender.getFullName() + " has accepted your friend request.";
+            case REPLY_TO_COMMENT -> sender.getFullName() + " has replied to your comment.";
+            case TAGGED_IN_POST -> sender.getFullName() + " has tagged you in a post.";
+            default -> null;
+        };
     }
 } 
