@@ -50,4 +50,9 @@ public class ImageTagController {
         PageRequest pageRequest = PageRequest.of(page - 1, size, Sort.by("likeCount").descending());
         return ResponseEntity.ok(tagService.getImagesByTagId(tagId, pageRequest));
     }
+
+    @GetMapping("/all-tags")
+    public ResponseEntity<List<TagResponseDTO>> getAllTags() {
+        return ResponseEntity.ok(tagService.getAllTagsNoSorting());
+    }
 } 

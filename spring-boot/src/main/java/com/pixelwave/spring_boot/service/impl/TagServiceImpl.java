@@ -138,4 +138,14 @@ public class TagServiceImpl implements TagService {
                 images.size()
         );
     }
+
+    @Override
+    public List<TagResponseDTO> getAllTagsNoSorting() {
+        return tagRepository.findAll().stream()
+                .map(tag -> TagResponseDTO.builder()
+                        .id(tag.getId())
+                        .name(tag.getName())
+                        .build())
+                .collect(Collectors.toList());
+    }
 } 

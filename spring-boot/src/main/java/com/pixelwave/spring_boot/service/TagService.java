@@ -18,4 +18,6 @@ public interface TagService {
     boolean existsByName(String name);
     List<TagResponseDTO> getTagsSortedByImageCount(int limit);
     Page<TagImageResponseDTO> getImagesByTagId(Long tagId, Pageable pageable);
+
+    List<TagResponseDTO> getAllTagsNoSorting();
 } 
