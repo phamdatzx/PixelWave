@@ -140,6 +140,7 @@ public class PostService {
         postRepository.save(post);
     }
 
+    @Transactional
     public void unlikePost(UserDetails userDetails, Long postId) {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
@@ -150,6 +151,7 @@ public class PostService {
             post.getLikedBy().remove(currentUser);
             post.setLikeCount(post.getLikeCount() - 1);
         }
+        postRepository.save(post);
         postRepository.unlikePost(postId, ((User) userDetails).getId());
     }
 
