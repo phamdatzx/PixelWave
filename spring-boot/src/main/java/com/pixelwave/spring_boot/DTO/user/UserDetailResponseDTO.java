@@ -34,4 +34,8 @@ public class UserDetailResponseDTO {
 
     private int friendCount;
 
+    private Boolean isFollowing;
+
+    private Boolean isFriend;
+
 }

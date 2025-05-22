@@ -32,7 +32,7 @@ public class UserService {
     private final ChatService chatService;
     private final S3Service s3Service;
 
-    public UserDetailResponseDTO getUserById(Long userId) {
+    public UserDetailResponseDTO getUserById(UserDetails userDetails, Long userId) {
         var targetUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + userId));
 
@@ -41,7 +41,11 @@ public class UserService {
         resultDTO.setFollowerCount(targetUser.getFollowers().size());
         resultDTO.setFollowingCount(targetUser.getFollowingUsers().size());
         resultDTO.setFriendCount(targetUser.getFriends().size());
-
+        if(userDetails!= null && !Objects.equals(((User) userDetails).getId(), userId))
+        {
+            resultDTO.setIsFriend(targetUser.isFriendWith(((User) userDetails).getId()));
+            resultDTO.setIsFollowing(targetUser.isFollowingBy(((User) userDetails)));
+        }
         return resultDTO;
     }
 

@@ -29,8 +29,8 @@ public class UserController {
 
     //Get user by id
     @GetMapping("/user/{userId}")
-    public ResponseEntity<UserDetailResponseDTO> getUserById(@PathVariable Long userId) {
-        return ResponseEntity.ok(userService.getUserById(userId));
+    public ResponseEntity<UserDetailResponseDTO> getUserById(@AuthenticationPrincipal UserDetails userDetails ,@PathVariable Long userId) {
+        return ResponseEntity.ok(userService.getUserById(userDetails, userId));
     }
     //follow user
     @PostMapping("/user/{userId}/follow")

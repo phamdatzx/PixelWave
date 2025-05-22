@@ -130,4 +130,9 @@ public class User implements UserDetails {
         this.friends.add(friend);
         friend.getFriends().add(this);
     }
+
+    public boolean isFollowingBy(User otherUser) {
+        return followers.stream()
+                .anyMatch(follower -> follower.getId().equals(otherUser.getId()));
+    }
 }

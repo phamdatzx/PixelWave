@@ -38,6 +38,7 @@ public class SecurityConfig{
                         .requestMatchers(HttpMethod.POST, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/auth/**").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/post/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/user/{userId}").permitAll()
                         .requestMatchers(HttpMethod.GET, "/api/user/{userId}/friends").permitAll()
                         .requestMatchers("/ws/**").permitAll()
 
