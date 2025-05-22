@@ -76,6 +76,10 @@ LIMIT :limit;
             @Param("isFriend") boolean isFriend,
             @Param("limit") int limit);
 
+    @Query(value = """
+DELETE FROM post_like w where w.post_id = :postId and w.user_id = :userId
+        """, nativeQuery = true)
+    void unlikePost(Long postId, Long userId);
 
 
 }

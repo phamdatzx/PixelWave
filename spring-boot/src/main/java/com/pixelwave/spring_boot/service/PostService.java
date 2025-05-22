@@ -149,8 +149,8 @@ public class PostService {
         if (post.isLikedByUser(currentUser)) {
             post.getLikedBy().remove(currentUser);
             post.setLikeCount(post.getLikeCount() - 1);
-        } 
-        postRepository.save(post);
+        }
+        postRepository.unlikePost(postId, ((User) userDetails).getId());
     }
 
     public PostSimplePageDTO getUserPosts(UserDetails userDetails, Long userId, int page, int size, String sortBy, String sortDirection) {
