@@ -5,6 +5,7 @@ import com.pixelwave.spring_boot.model.Post;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -76,6 +77,7 @@ LIMIT :limit;
             @Param("isFriend") boolean isFriend,
             @Param("limit") int limit);
 
+    @Modifying
     @Query(value = """
 DELETE FROM post_like w where w.post_id = :postId and w.user_id = :userId
         """, nativeQuery = true)

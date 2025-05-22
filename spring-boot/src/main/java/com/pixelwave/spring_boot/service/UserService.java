@@ -88,6 +88,10 @@ public class UserService {
             throw new ConflictException("You are already friends with this user");
         }
 
+        if(userAddFriendRequestRepository.findBySenderIdAndTargetIdAndStatus(((User) userDetails).getId(),userId,"PENDING") != null) {
+            throw new ConflictException("You have already sent a friend request to this user");
+        }
+
         UserAddFriendRequest addFriendRequest = UserAddFriendRequest.builder()
                 .sender(currentUser)
                 .target(targetUser)
@@ -236,10 +240,11 @@ public class UserService {
                 .collect(Collectors.toSet());
         currentUserFriendIds.add(currentUser.getId());
 
-        // Filter out current user and their friends
+        // Filter out current user and their friends and user who are received friend requests from current user
+        List<UserAddFriendRequest> friendRequests = userAddFriendRequestRepository.findAllBySenderIdAndStatus(currentUser.getId(), "PENDING");
         List<User> potentialRecommendations = allUsers.stream()
-                .filter(user -> !currentUserFriendIds.contains(user.getId()))
-                .collect(Collectors.toList());
+                .filter(user -> !currentUserFriendIds.contains(user.getId()) && friendRequests.stream().noneMatch(request -> request.getTarget().getId().equals(user.getId())))
+                .toList();
 
         // Calculate mutual friends count for each potential recommendation
         Map<User, Integer> mutualFriendsCount = new HashMap<>();

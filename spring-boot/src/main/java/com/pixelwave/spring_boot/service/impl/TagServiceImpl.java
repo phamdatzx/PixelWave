@@ -14,6 +14,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -103,7 +104,7 @@ public class TagServiceImpl implements TagService {
         Tag tag = tagRepository.findById(tagId)
                 .orElseThrow(() -> new ResourceNotFoundException("Tag not found with id: " + tagId));
 
-        List<TagImageResponseDTO> images = tag.getImages().stream()
+        List<TagImageResponseDTO> images = tag.getImages().stream().filter(image -> Objects.equals(image.getPost().getPrivacySetting(), "public"))
                 .map(image -> TagImageResponseDTO.builder()
                         .imageId(image.getId())
                         .url(image.getUrl())

@@ -147,6 +147,7 @@ public class PostService {
 
         // Check if the user has already liked the post
         User currentUser = (User) userDetails;
+
         if (post.isLikedByUser(currentUser)) {
             post.getLikedBy().remove(currentUser);
             post.setLikeCount(post.getLikeCount() - 1);
