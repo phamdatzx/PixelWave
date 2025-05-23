@@ -16,13 +16,16 @@ import java.time.LocalDateTime;
 @Table(name = "post_view")
 public class PostView {
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "post_id")
     private Post post;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "user_id")
     private User user;
 
-    private LocalDateTime createdAt;
+    private LocalDateTime createdAt= LocalDateTime.now();
 }

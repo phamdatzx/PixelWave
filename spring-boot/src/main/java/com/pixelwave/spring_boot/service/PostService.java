@@ -253,10 +253,14 @@ public class PostService {
         // Convert map to list and return
         var res=  new ArrayList<>(postsMap.values());
         List<Long> postIds = new ArrayList<>();
-//        for (PostDetailDTO post : res) {
-//            PostView postView = PostView.builder().user(queryUser).post().build();
-//            //postViewRepository.insertPostView(queryUserId,post.getId(),LocalDateTime.now());
-//        }
+        for (PostDetailDTO post : res) {
+            Post postEntity = postRepository.findById(post.getId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + post.getId()));
+            PostView postView = PostView.builder().user(queryUser).post(postEntity).createdAt(LocalDateTime.now()).build();
+            System.out.println(postView.getPost().getId());
+            System.out.println(postView.getUser().getId());
+            postViewRepository.save(postView);
+        }
 
 
         return res;

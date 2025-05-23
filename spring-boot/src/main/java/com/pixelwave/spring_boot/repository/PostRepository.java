@@ -69,7 +69,7 @@ GROUP BY
     img.id,
     img.url,
     is_liked
-ORDER BY view_count DESC, p.created_at DESC
+ORDER BY view_count, p.created_at DESC
 LIMIT :limit;
         """, nativeQuery = true)
     List<Object[]> findPostsWithImages(

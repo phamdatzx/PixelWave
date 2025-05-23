@@ -64,6 +64,9 @@ public class Post {
     @ManyToMany(mappedBy = "posts")
     private List<Collection> collections = new ArrayList<>();
 
+    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
+    private List<PostView> views = new ArrayList<>();
+
 //    @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)
 //    private Set<Notification> notifications = new HashSet<>();
 
