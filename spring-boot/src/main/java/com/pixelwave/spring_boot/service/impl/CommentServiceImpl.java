@@ -164,7 +164,7 @@ public class CommentServiceImpl {
                 .createdAt(comment.getCreatedAt())
                 .user(UserDTO.builder()
                         .id(comment.getUser().getId())
-                        .username(comment.getUser().getUsername())
+                        .fullName(comment.getUser().getFullName())
                         .avatar(comment.getUser().getAvatar())
                         .build())
                 .images(comment.getImages() != null ? comment.getImages().stream()
