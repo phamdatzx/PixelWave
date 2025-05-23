@@ -7,11 +7,9 @@ import com.pixelwave.spring_boot.DTO.post.*;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
-import com.pixelwave.spring_boot.model.Image;
-import com.pixelwave.spring_boot.model.NotificationType;
-import com.pixelwave.spring_boot.model.Post;
-import com.pixelwave.spring_boot.model.User;
+import com.pixelwave.spring_boot.model.*;
 import com.pixelwave.spring_boot.repository.PostRepository;
+import com.pixelwave.spring_boot.repository.PostViewRepository;
 import com.pixelwave.spring_boot.repository.TagRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
 import jakarta.transaction.Transactional;
@@ -35,6 +33,7 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+@Transactional
 public class PostService {
 
     private final ModelMapper modelMapper;
@@ -44,6 +43,7 @@ public class PostService {
     private final ImageTagService imageTagService;
     private final TagRepository tagRepository;
     private final NotificationService notificationService;
+    private final PostViewRepository postViewRepository;
 
     @Value("${post-image-directory}")
     private String postImageDirectory;
@@ -195,15 +195,17 @@ public class PostService {
     }
 
     public List<PostDetailDTO> getFeedPosts(Long queryUserId, boolean isFriend, int limit) {
+        User queryUser = userRepository.findById(queryUserId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + queryUserId));
         List<Object[]> results = postRepository.findPostsWithImages(queryUserId, isFriend, limit);
         
         // Use a Map to group by postId
         Map<Long, PostDetailDTO> postsMap = new HashMap<>();
-        
+
         for (int i = 0; i < results.size(); i++) {
             Object[] row = results.get(i);
             Long postId = (Long) row[0];
-            
+
             // Get or create the post DTO
             PostDetailDTO postDTO = postsMap.computeIfAbsent(postId, id -> {
                 PostDetailDTO dto = new PostDetailDTO();
@@ -246,9 +248,18 @@ public class PostService {
                 }
             }
         }
-        
+
+
         // Convert map to list and return
-        return new ArrayList<>(postsMap.values());
+        var res=  new ArrayList<>(postsMap.values());
+        List<Long> postIds = new ArrayList<>();
+//        for (PostDetailDTO post : res) {
+//            PostView postView = PostView.builder().user(queryUser).post().build();
+//            //postViewRepository.insertPostView(queryUserId,post.getId(),LocalDateTime.now());
+//        }
+
+
+        return res;
     }
 
     public boolean canAccessPost(Long userId, Long postId) {

@@ -18,7 +18,8 @@ public class PostView {
     @Id
     private Long id;
 
-    private Long postId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    private Post post;
 
     @ManyToOne(fetch = FetchType.LAZY)
     private User user;
