@@ -61,7 +61,7 @@ public class Post {
     )
     private List<User> taggedUsers = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "posts")
+    @ManyToMany(mappedBy = "posts", cascade = { CascadeType.REMOVE })
     private List<Collection> collections = new ArrayList<>();
 
     @OneToMany(mappedBy = "post", cascade = CascadeType.ALL)

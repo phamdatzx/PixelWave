@@ -8,10 +8,7 @@ import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
 import com.pixelwave.spring_boot.model.*;
-import com.pixelwave.spring_boot.repository.PostRepository;
-import com.pixelwave.spring_boot.repository.PostViewRepository;
-import com.pixelwave.spring_boot.repository.TagRepository;
-import com.pixelwave.spring_boot.repository.UserRepository;
+import com.pixelwave.spring_boot.repository.*;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
@@ -44,6 +41,8 @@ public class PostService {
     private final TagRepository tagRepository;
     private final NotificationService notificationService;
     private final PostViewRepository postViewRepository;
+    private final CommentRepository commentRepository;
+    private final ImageRepository imageRepository;
 
     @Value("${post-image-directory}")
     private String postImageDirectory;
@@ -287,5 +286,32 @@ public class PostService {
             default:
                 return false;
         }
+    }
+
+    @Transactional
+    public void deletePost(UserDetails userDetails, Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
+
+        // Check if the user is the post owner
+        if (!post.getUser().getId().equals(((User) userDetails).getId())) {
+            throw new ForbiddenException("You are not allowed to delete this post");
+        }
+
+        for (Image image : post.getImages()) {
+            for(Tag tag : image.getTags()) {
+                tag.getImages().remove(image);
+                tagRepository.save(tag);
+            }
+            image.getTags().clear();
+            imageRepository.delete(image);
+        }
+
+        for (Comment comment : post.getComments()) {
+            commentRepository.delete(comment);
+        }
+
+        // Delete the post
+        postRepository.deletePostCompletely(post.getId());
     }
 }

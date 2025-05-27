@@ -311,4 +311,21 @@ public class UserService {
     }
 
 
+    public void deleteFriend(UserDetails userDetails, Long userId) {
+        var currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + ((User) userDetails).getId()));
+
+        var targetUser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + userId));
+
+        if (!currentUser.getFriends().contains(targetUser)) {
+            throw new ConflictException("You are not friends with this user");
+        }
+
+        currentUser.getFriends().remove(targetUser);
+        targetUser.getFriends().remove(currentUser);
+
+        userRepository.save(currentUser);
+        userRepository.save(targetUser);
+    }
 }

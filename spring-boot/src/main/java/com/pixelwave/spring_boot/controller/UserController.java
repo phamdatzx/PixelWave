@@ -53,6 +53,14 @@ public class UserController {
         userService.addFriend(userDetails, userId);
         return ResponseEntity.status(201).build();
     }
+
+    @DeleteMapping("/user/friends/{userId}`")
+    public ResponseEntity<Void> deleteFriend(@AuthenticationPrincipal UserDetails userDetails,
+                                            @PathVariable Long userId) {
+        userService.deleteFriend(userDetails, userId);
+        return ResponseEntity.status(204).build();
+    }
+
     //get add friend requests of me
     @GetMapping("/user/friend-requests")
     public ResponseEntity<List<AddFriendRequestDTO>> getPendingFriendRequests(@AuthenticationPrincipal UserDetails userDetails) {

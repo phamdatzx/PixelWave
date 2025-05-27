@@ -82,4 +82,46 @@ LIMIT :limit;
 DELETE FROM post_like w where w.post_id = :postId and w.user_id = :userId
         """, nativeQuery = true)
     void unlikePost(Long postId, Long userId);
+
+    // Method 1: Individual delete methods for each relationship table
+    @Modifying
+    @Query(value = "DELETE FROM post_like WHERE post_id = :postId", nativeQuery = true)
+    void deletePostLikes(@Param("postId") Long postId);
+
+    @Modifying
+    @Query(value = "DELETE FROM post_tag WHERE post_id = :postId", nativeQuery = true)
+    void deletePostTags(@Param("postId") Long postId);
+
+    @Modifying
+    @Query(value = "DELETE FROM post_view WHERE post_id = :postId", nativeQuery = true)
+    void deletePostViews(@Param("postId") Long postId);
+
+    @Modifying
+    @Query(value = "DELETE FROM collection_post WHERE post_id = :postId", nativeQuery = true)
+    void deletePostFromCollections(@Param("postId") Long postId);
+
+    // Method 2: Single method to delete from all relationship tables at once
+    @Modifying
+    @Query(value = """
+        DELETE FROM post_like WHERE post_id = :postId;
+        DELETE FROM post_tag WHERE post_id = :postId;
+        DELETE FROM post_view WHERE post_id = :postId;
+        DELETE FROM collection_post WHERE post_id = :postId;
+        """, nativeQuery = true)
+    void deletePostFromAllRelationships(@Param("postId") Long postId);
+
+    // Method 3: Complete post deletion with all relationships
+    @Modifying
+    @Query(value = """
+        DELETE FROM post_like WHERE post_id = :postId;
+        DELETE FROM post_tag WHERE post_id = :postId;
+        DELETE FROM post_view WHERE post_id = :postId;
+        DELETE FROM collection_post WHERE post_id = :postId;
+        DELETE FROM comment WHERE post_id = :postId;
+        DELETE FROM image WHERE post_id = :postId;
+        DELETE FROM post WHERE id = :postId;
+        """, nativeQuery = true)
+    void deletePostCompletely(@Param("postId") Long postId);
+
+
 }

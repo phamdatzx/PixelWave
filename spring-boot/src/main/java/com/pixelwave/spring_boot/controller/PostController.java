@@ -65,4 +65,11 @@ public class PostController {
                                                                @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(postService.getFeedPosts(((User) userDetails).getId(), true, size));
     }
+
+    @DeleteMapping("/post/{postId}")
+    public ResponseEntity<Void> deletePost(@AuthenticationPrincipal UserDetails userDetails,
+                                           @PathVariable Long postId) {
+        postService.deletePost(userDetails, postId);
+        return ResponseEntity.status(200).build();
+    }
 }
