@@ -1,6 +1,7 @@
 package com.pixelwave.spring_boot.controller;
 
 import com.pixelwave.spring_boot.DTO.UploadImageDTO;
+import com.pixelwave.spring_boot.DTO.auth.ChangePassWordDTO;
 import com.pixelwave.spring_boot.DTO.error.ErrorDTO;
 import com.pixelwave.spring_boot.DTO.user.AddFriendRequestDTO;
 import com.pixelwave.spring_boot.DTO.user.UpdateUserProfileRequestDTO;
@@ -26,6 +27,14 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+
+    @PutMapping("/user/password")
+    public ResponseEntity<Void> changePassword(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestBody ChangePassWordDTO changePassWordDTO) {
+        userService.changePassword(userDetails,changePassWordDTO.getOldPassword(), changePassWordDTO.getNewPassword());
+        return ResponseEntity.ok().build();
+    }
 
     //Get user by id
     @GetMapping("/user/{userId}")

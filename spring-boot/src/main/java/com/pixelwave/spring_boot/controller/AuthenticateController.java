@@ -1,9 +1,6 @@
 package com.pixelwave.spring_boot.controller;
 
-import com.pixelwave.spring_boot.DTO.auth.LoginRequest;
-import com.pixelwave.spring_boot.DTO.auth.LoginResponse;
-import com.pixelwave.spring_boot.DTO.auth.RefreshTokenDTO;
-import com.pixelwave.spring_boot.DTO.auth.RegisterRequest;
+import com.pixelwave.spring_boot.DTO.auth.*;
 import com.pixelwave.spring_boot.service.AuthenticationService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,7 +25,6 @@ public class AuthenticateController {
     service.register(registerRequest);
     return ResponseEntity.ok("User registered successfully");
   }
-
   @RequestMapping("activate/{token}")
   public ResponseEntity<String> activateEmail(@PathVariable String token) {
       service.activeAccount(token);

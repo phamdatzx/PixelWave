@@ -16,6 +16,7 @@ import com.pixelwave.spring_boot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -31,6 +32,7 @@ public class UserService {
     private final UserAddFriendRequestRepository userAddFriendRequestRepository;
     private final ChatService chatService;
     private final S3Service s3Service;
+    private final PasswordEncoder passwordEncoder;
 
     public UserDetailResponseDTO getUserById(UserDetails userDetails, Long userId) {
         var targetUser = userRepository.findById(userId)
@@ -327,5 +329,17 @@ public class UserService {
 
         userRepository.save(currentUser);
         userRepository.save(targetUser);
+    }
+
+    public void changePassword(UserDetails userDetails, String oldPassword,String newPassword) {
+        User user = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if(!passwordEncoder.matches(oldPassword, user.getPassword())) {
+            throw new ConflictException("Old password is incorrect");
+        }
+
+        user.setPassword(passwordEncoder.encode(newPassword));
+        userRepository.save(user);
     }
 }
