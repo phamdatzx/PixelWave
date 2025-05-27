@@ -92,17 +92,19 @@ public class PostService {
             throw new ForbiddenException("You are not allowed to view this post");
         }
 
-        //check if the user is not the post owner
-        if(!post.getUser().getId().equals(((User) userDetails).getId())){
-            //check privacy setting
-            if(post.getPrivacySetting().equals("private")){
-                throw new ForbiddenException("You are not allowed to view this post");
-            }
-            //check if the post is friend
-            if(post.getPrivacySetting().equals("friend")){
-                //check if the user is a friend of the post owner
-                if(!post.getUser().isFriendWith(((User) userDetails).getId())){
+        if(userDetails != null) {
+            //check if the user is not the post owner
+            if(!post.getUser().getId().equals(((User) userDetails).getId())){
+                //check privacy setting
+                if(post.getPrivacySetting().equals("private")){
                     throw new ForbiddenException("You are not allowed to view this post");
+                }
+                //check if the post is friend
+                if(post.getPrivacySetting().equals("friend")){
+                    //check if the user is a friend of the post owner
+                    if(!post.getUser().isFriendWith(((User) userDetails).getId())){
+                        throw new ForbiddenException("You are not allowed to view this post");
+                    }
                 }
             }
         }
