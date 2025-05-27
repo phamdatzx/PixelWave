@@ -20,6 +20,8 @@ public interface PostRepository extends JpaRepository<Post, Long> {
 
     Page<Post> findByUserIdAndPrivacySetting(Long userId,String privacySetting, Pageable pageable);
 
+    Page<Post> findByTaggedUsersIdAndPrivacySettingIn(Long userId, List<String> privacySetting, Pageable pageable);
+
     @Query(value = """
 SELECT
     p.id AS id,

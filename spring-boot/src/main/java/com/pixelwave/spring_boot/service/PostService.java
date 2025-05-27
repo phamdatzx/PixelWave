@@ -195,6 +195,43 @@ public class PostService {
                 .build();
     }
 
+    public PostSimplePageDTO getUserTaggedPosts(UserDetails userDetails, Long userId, int page, int size, String sortBy, String sortDirection) {
+        // Validate user existence
+        User targetuser = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found: " + userId));
+
+        Sort sort = Sort.by(sortDirection.equalsIgnoreCase("desc") ? Sort.Direction.DESC : Sort.Direction.ASC, sortBy);
+        Pageable pageable = PageRequest.of(page - 1, size, sort );
+
+        List<String> privacySettingList = new ArrayList<>(List.of("public"));
+        if(userDetails != null && targetuser.isFriendWith(((User) userDetails).getId())) {
+            privacySettingList.add("friend");
+        }
+
+        Page<Post> postPage = postRepository.findByTaggedUsersIdAndPrivacySettingIn(userId,privacySettingList, pageable);
+
+        List<PostSimpleDTO> postSimpleDTOs = postPage.getContent().stream()
+                .map(post -> {
+                    PostSimpleDTO postSimpleDTO = PostSimpleDTO.builder().
+                            id(post.getId())
+                            .likeCount(post.getLikeCount())
+                            .commentCount(post.getCommentCount())
+                            .build();
+                    postSimpleDTO.setImageUrl(post.getImages().isEmpty() ? null : post.getImages().getFirst().getUrl());
+                    return postSimpleDTO;
+                })
+                .toList();
+
+        return PostSimplePageDTO.builder()
+                .posts(postSimpleDTOs)
+                .totalPages(postPage.getTotalPages())
+                .totalElements(postPage.getTotalElements())
+                .pageSize(postPage.getSize())
+                .currentPage(postPage.getNumber() + 1)
+                .build();
+    }
+
+
     public List<PostDetailDTO> getFeedPosts(Long queryUserId, boolean isFriend, int limit) {
         User queryUser = userRepository.findById(queryUserId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found: " + queryUserId));

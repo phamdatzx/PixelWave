@@ -60,6 +60,16 @@ public class PostController {
         return ResponseEntity.ok(postService.getUserPosts(userDetails, userId, page, size, sortBy, sortDirection));
     }
 
+    @GetMapping("/user/{userId}/tagged-posts")
+    public ResponseEntity<PostSimplePageDTO> getUserTaggedPosts(@AuthenticationPrincipal UserDetails userDetails ,
+                                                          @PathVariable Long userId,
+                                                          @RequestParam(defaultValue = "1") int page,
+                                                          @RequestParam(defaultValue = "10") int size,
+                                                          @RequestParam(defaultValue = "createdAt") String sortBy,
+                                                          @RequestParam(defaultValue = "desc") String sortDirection){
+        return ResponseEntity.ok(postService.getUserTaggedPosts(userDetails, userId, page, size, sortBy, sortDirection));
+    }
+
     @GetMapping("/feed")
     public ResponseEntity<List<PostDetailDTO>> getFeed(@AuthenticationPrincipal UserDetails userDetails,
                                                                @RequestParam(defaultValue = "10") int size) {
