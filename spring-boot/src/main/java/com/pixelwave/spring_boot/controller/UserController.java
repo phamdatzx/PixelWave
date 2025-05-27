@@ -54,7 +54,7 @@ public class UserController {
         return ResponseEntity.status(201).build();
     }
 
-    @DeleteMapping("/user/friends/{userId}`")
+    @DeleteMapping("/user/friends/{userId}")
     public ResponseEntity<Void> deleteFriend(@AuthenticationPrincipal UserDetails userDetails,
                                             @PathVariable Long userId) {
         userService.deleteFriend(userDetails, userId);
