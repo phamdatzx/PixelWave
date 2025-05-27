@@ -166,11 +166,16 @@ public class PostService {
         Pageable pageable = PageRequest.of(page - 1, size, sort );
 
         Page<Post> postPage;
-        if (userId.equals(((User) userDetails).getId())) {
-            postPage = postRepository.findByUserId(userId, pageable);
-        } else if (findUser.isFriendWith(((User) userDetails).getId())) {
-            postPage = postRepository.findByUserIdAndPrivacySettingIn(userId, List.of("friend", "public"), pageable);
-        } else {
+        if(userDetails != null){
+            if (userId.equals(((User) userDetails).getId())) {
+                postPage = postRepository.findByUserId(userId, pageable);
+            } else if (findUser.isFriendWith(((User) userDetails).getId())) {
+                postPage = postRepository.findByUserIdAndPrivacySettingIn(userId, List.of("friend", "public"), pageable);
+            } else {
+                postPage = postRepository.findByUserIdAndPrivacySetting(userId, "public", pageable);
+            }
+        }
+        else {
             postPage = postRepository.findByUserIdAndPrivacySetting(userId, "public", pageable);
         }
 
