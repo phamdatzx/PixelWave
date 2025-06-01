@@ -118,8 +118,8 @@ public class PostService {
                 .likeCount(post.getLikeCount())
                 .commentCount(post.getCommentCount())
                 .tagUserCount(post.getTaggedUsers().size())
-                .isTaggedUser(post.isTaggedUser((User) userDetails))
-                .isLiked(post.isLikedByUser((User) userDetails))
+                .isTaggedUser(userDetails != null && post.isTaggedUser((User) userDetails))
+                .isLiked(userDetails != null && post.isLikedByUser((User) userDetails))
                 .build();
 
         responseDTO.setImages(post.getImages().stream().map(image -> modelMapper.map(image, ImageDTO.class)).collect(Collectors.toList()));
