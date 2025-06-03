@@ -303,6 +303,14 @@
                 onMessageReceived
               );
 
+              stompClient.subscribe(
+                      '/queue/' + userId + '/notification',
+                      (message) => {
+                        console.log("Notification received: ", message);
+                        // Handle notification message
+                      }
+              )
+
               // stompClient.send(
               //   "/app/channel/subscribe",
               //   {},
@@ -313,7 +321,7 @@
               // );
 
               // Update UI for connected state
-              setStatus("connected", "Connected to channel");
+              setStatus("connected", "Connected to conversation");
               updateUIForConnectedState();
             },
             // Error callback
@@ -334,7 +342,7 @@
           try {
             // Send leave message
             stompClient.send(
-              "/app/channel/unsubscribe",
+              "/app/conversation/unsubscribe",
               {},
               JSON.stringify({
                 userId: userId,
@@ -383,7 +391,7 @@
 
         // Send message to server
         stompClient.send(
-          `/app/channel/${channelId}/send`,
+          `/app/conversation/${channelId}/send`,
           {},
           JSON.stringify(chatMessage)
         );

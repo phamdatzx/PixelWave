@@ -2,7 +2,9 @@ package com.pixelwave.spring_boot.config;
 
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.ChannelService;
+import com.pixelwave.spring_boot.service.ConversationService;
 import com.pixelwave.spring_boot.service.JwtService;
+import com.pixelwave.spring_boot.service.UserSessionManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -25,10 +27,10 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
     private final ChannelService channelService;
     private final JwtService jwtService; // Inject your JWT service
     private final UserDetailsService userDetailsService; // Inject UserDetailsService if needed
-
+    private final ConversationService conversationService; // Inject ConversationService if needed
     // Store user sessions (same as your event listener)
-    private final Map<String, String> userSessions = new ConcurrentHashMap<>();
-    private final Map<String, String> sessionUsers = new ConcurrentHashMap<>();
+
+    private final UserSessionManager userSessionManager;
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -58,8 +60,6 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
 
     private Message<?> handleConnect(StompHeaderAccessor accessor, Message<?> message) {
         String sessionId = accessor.getSessionId();
-
-        // Get Authorization header from CONNECT frame
         List<String> authHeaders = accessor.getNativeHeader("Authorization");
 
         if (authHeaders != null && !authHeaders.isEmpty()) {
@@ -67,24 +67,20 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
             System.out.println("CONNECT - Token received: " + token);
 
             try {
-                // Validate token and extract user ID
                 String userId = validateTokenAndGetUserId(token);
 
                 if (userId != null) {
-                    // Store user session mapping
-                    userSessions.put(userId, sessionId);
-                    sessionUsers.put(sessionId, userId);
+                    // Use UserSessionManager instead of local maps
+                    userSessionManager.addUserSession(userId, sessionId);
 
-                    // Store in session attributes for later use
+                    // Store in session attributes
                     accessor.getSessionAttributes().put("userId", userId);
                     accessor.getSessionAttributes().put("accessToken", token);
                     accessor.getSessionAttributes().put("authenticated", true);
 
-                    System.out.println("User authenticated and connected: " + userId + " with session: " + sessionId);
-
-                    return message; // Allow connection
+                    System.out.println("User authenticated: " + userId);
+                    return message;
                 } else {
-                    System.out.println("Invalid token, rejecting connection");
                     throw new SecurityException("Invalid authentication token");
                 }
 
@@ -93,7 +89,6 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
                 throw new SecurityException("Authentication failed: " + e.getMessage());
             }
         } else {
-            System.out.println("No Authorization header in CONNECT frame");
             throw new SecurityException("Missing authentication token");
         }
     }
@@ -120,6 +115,10 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
             System.out.println("User " + userId + " subscribing to channel: " + conversationId);
 
             // Check if user has permission to access this channel
+            if(!conversationService.isUserIdInConversation(Long.parseLong(userId), conversationId)){
+                System.out.println("User " + userId + " does not have permission to subscribe to channel: " + conversationId);
+                throw new SecurityException("User does not have permission to access this channel");
+            }
 
             System.out.println("User " + userId + " successfully subscribed to channel: " + conversationId);
         }
@@ -129,13 +128,10 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
 //
     private Message<?> handleDisconnect(StompHeaderAccessor accessor, Message<?> message) {
         String sessionId = accessor.getSessionId();
-        String userId = sessionUsers.get(sessionId);
+        String userId = userSessionManager.getUserIdBySessionId(sessionId);
 
         if (userId != null) {
-            // Clean up user session mappings
-            userSessions.remove(userId);
-            sessionUsers.remove(sessionId);
-            System.out.println("User disconnected: " + userId);
+            userSessionManager.removeUserSession(userId);
         }
 
         return message;
@@ -158,22 +154,5 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
             System.err.println("Token validation error: " + e.getMessage());
             return null;
         }
-    }
-
-    // Public methods to access user session mappings from other components
-    public boolean isUserConnected(String userId) {
-        return userSessions.containsKey(userId);
-    }
-
-    public String getSessionIdByUserId(String userId) {
-        return userSessions.get(userId);
-    }
-
-    public String getUserIdBySessionId(String sessionId) {
-        return sessionUsers.get(sessionId);
-    }
-
-    public Map<String, String> getAllConnectedUsers() {
-        return new ConcurrentHashMap<>(userSessions);
     }
 }

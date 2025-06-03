@@ -23,23 +23,23 @@ public class WebSocketController {
     /**
      * Handle messages sent to a specific channel
      */
-    @MessageMapping("/channel/{channelId}/send")
-    public void sendMessage(@DestinationVariable String channelId, @Payload WebSocketMessageDTO message) {
-        message.setChannelId(channelId);
+    @MessageMapping("/conversation/{conversationId}/send")
+    public void sendMessage(@DestinationVariable String conversationId, @Payload WebSocketMessageDTO message) {
+        message.setChannelId(conversationId);
 
         // Check if channel exists, if not create it
-        if (!channelManager.channelExists(channelId)) {
-            channelManager.createChannel(channelId);
+        if (!channelManager.channelExists(conversationId)) {
+            channelManager.createChannel(conversationId);
         }
 
         // Send message to channel subscribers
-        messagingTemplate.convertAndSend("/topic/channel/" + channelId, message);
+        messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, message);
     }
 
     /**
      * Handle channel subscription requests
      */
-    @MessageMapping("/channel/subscribe")
+    @MessageMapping("/conversation/subscribe")
     public void subscribeChannel(@Payload ChannelSubscription subscription,
                                  SimpMessageHeaderAccessor headerAccessor) {
         String userId = subscription.getUserId();
@@ -50,22 +50,22 @@ public class WebSocketController {
 
         // Store user in WebSocket session for handling disconnect events
         headerAccessor.getSessionAttributes().put("userId", userId);
-        headerAccessor.getSessionAttributes().put("channelId", channelId);
+        headerAccessor.getSessionAttributes().put("conversationId", channelId);
 
         // Notify channel about new user
         WebSocketMessageDTO message = new WebSocketMessageDTO();
         message.setType(WebSocketMessageDTO.MessageType.JOIN);
         message.setSender(userId);
         message.setChannelId(channelId);
-        message.setContent(userId + " joined the channel");
+        message.setContent(userId + " joined the conversation");
 
-        messagingTemplate.convertAndSend("/topic/channel/" + channelId, message);
+        messagingTemplate.convertAndSend("/topic/conversation/" + channelId, message);
     }
 
     /**
      * Handle channel unsubscription requests
      */
-    @MessageMapping("/channel/unsubscribe")
+    @MessageMapping("/conversation/unsubscribe")
     public void unsubscribeChannel(@Payload ChannelSubscription subscription) {
         String userId = subscription.getUserId();
         String channelId = subscription.getChannelId();
@@ -80,6 +80,6 @@ public class WebSocketController {
         message.setChannelId(channelId);
         message.setContent(userId + " left the channel");
 
-        messagingTemplate.convertAndSend("/topic/channel/" + channelId, message);
+        messagingTemplate.convertAndSend("/topic/conversation/" + channelId, message);
     }
 }
