@@ -2,11 +2,15 @@ package com.pixelwave.spring_boot.service;
 
 import com.pixelwave.spring_boot.DTO.chat.ConversationDTO;
 import com.pixelwave.spring_boot.model.Conversation;
+import com.pixelwave.spring_boot.model.Message;
 import com.pixelwave.spring_boot.model.UserAddFriendRequest;
 import com.pixelwave.spring_boot.repository.ConversationRepository;
+import com.pixelwave.spring_boot.repository.MessageRepository;
+import com.pixelwave.spring_boot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
@@ -14,6 +18,8 @@ import java.util.List;
 public class ChatService {
     private final JwtService jwtService;
     private final ConversationRepository conservationRepository;
+    private final UserRepository userRepository;
+    private final MessageRepository messageRepository;
 
     public void createConservation(UserAddFriendRequest userAddFriendRequest) {
         var user1Id = userAddFriendRequest.getSender().getId();
@@ -40,5 +46,25 @@ public class ChatService {
 //                        conversation.getLastUpdated()))
 //                .toList();
         return null;
+    }
+
+    public Message createMessage(String conversationId, String content, Long senderId) {
+
+        var sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new IllegalArgumentException("Sender not found"));
+
+        var conservation = conservationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+
+
+        Message message = Message.builder()
+                .content(content)
+                .sender(sender)
+                .conversation(conservation)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+
+        return messageRepository.save(message); // Placeholder return value
     }
 }

@@ -2,7 +2,11 @@ package com.pixelwave.spring_boot.controller;
 
 import com.pixelwave.spring_boot.DTO.ChannelSubscription;
 import com.pixelwave.spring_boot.DTO.WebSocketMessageDTO;
+import com.pixelwave.spring_boot.model.Message;
+import com.pixelwave.spring_boot.repository.MessageRepository;
 import com.pixelwave.spring_boot.service.ChannelManager;
+import com.pixelwave.spring_boot.service.ChatService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
@@ -12,25 +16,25 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Controller;
 
 @Controller
+@RequiredArgsConstructor
 public class WebSocketController {
 
-    @Autowired
-    private SimpMessagingTemplate messagingTemplate;
+    private final ChatService chatService;
 
-    @Autowired
-    private ChannelManager channelManager;
+    private final  SimpMessagingTemplate messagingTemplate;
+
+    private final ChannelManager channelManager;
 
     /**
      * Handle messages sent to a specific channel
      */
-    @MessageMapping("/conversation/{conversationId}/send")
+    @MessageMapping("/conversation/{conversationId}")
     public void sendMessage(@DestinationVariable String conversationId, @Payload WebSocketMessageDTO message) {
         message.setChannelId(conversationId);
+        //save to database
+        var savedMessage = chatService.createMessage(conversationId, message.getContent(), Long.parseLong(message.getSender()));
 
-        // Check if channel exists, if not create it
-        if (!channelManager.channelExists(conversationId)) {
-            channelManager.createChannel(conversationId);
-        }
+        message.setId(savedMessage.getId());
 
         // Send message to channel subscribers
         messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, message);

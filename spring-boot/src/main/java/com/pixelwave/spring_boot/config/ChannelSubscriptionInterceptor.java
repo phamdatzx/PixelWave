@@ -38,10 +38,18 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                 return handleConnect(accessor, message);
             } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-                return handleSubscribe(accessor, message);
+                if( accessor.getDestination().startsWith("/topic/")) {
+                    return handleSubscribeTopic(accessor, message);
+                }
+                else {
+                    return handleSubscribeNotification(accessor, message);
+                }
             } else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
                 return handleDisconnect(accessor, message);
             }
+             else if (StompCommand.SEND.equals(accessor.getCommand())) {
+                 return handleSendMessage(accessor, message);
+             }
         }
 
         return message;
@@ -87,7 +95,7 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
         }
     }
 
-    private Message<?> handleSubscribe(StompHeaderAccessor accessor, Message<?> message) {
+    private Message<?> handleSubscribeTopic(StompHeaderAccessor accessor, Message<?> message) {
         String sessionId = accessor.getSessionId();
         String destination = accessor.getDestination();
         String userId = (String) accessor.getSessionAttributes().get("userId");
@@ -110,10 +118,51 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
             }
         }
 
-        // Log user queue subscriptions for debugging
-        if (destination != null && destination.startsWith("/user/queue/")) {
-            System.out.println("✓ User subscribing to personal queue: " + destination);
+        return message;
+    }
+
+    private Message<?> handleSendMessage(StompHeaderAccessor accessor, Message<?> message) {
+        String sessionId = accessor.getSessionId();
+        String destination = accessor.getDestination();
+        String conservationId = destination.split("/")[3];
+        String userId = (String) accessor.getSessionAttributes().get("userId");
+
+        //add userId to message headers
+
+        System.out.println("=== SUBSCRIBE Debug ===");
+        System.out.println("User: " + userId);
+        System.out.println("Session: " + sessionId);
+        System.out.println("Destination: " + destination);
+        System.out.println("User Principal: " + (accessor.getUser() != null ? accessor.getUser().getName() : "null"));
+
+        if (userId == null) {
+            throw new SecurityException("User not authenticated");
         }
+
+        // Validate conversation subscriptions
+        if (destination != null && destination.startsWith("/topic/conversation/")) {
+            String conversationId = destination.replace("/topic/conversation/", "");
+            if (!conversationService.isUserIdInConversation(Long.parseLong(userId), conversationId)) {
+                throw new SecurityException("User does not have permission to access this channel");
+            }
+        }
+
+        return message;
+    }
+
+    private Message<?> handleSubscribeNotification(StompHeaderAccessor accessor, Message<?> message) {
+        String sessionId = accessor.getSessionId();
+        String destination = accessor.getDestination();
+        String userId = (String) accessor.getSessionAttributes().get("userId");
+
+        if (destination == null || userId == null || !destination.equals("/user/queue/notifications/" + userId)) {
+            throw new SecurityException("Invalid subscription destination: " + destination);
+        }
+        System.out.println("=== SUBSCRIBE Debug ===");
+        System.out.println("User: " + userId);
+        System.out.println("Session: " + sessionId);
+        System.out.println("Destination: " + destination);
+        System.out.println("User Principal: " + (accessor.getUser() != null ? accessor.getUser().getName() : "null"));
 
         return message;
     }

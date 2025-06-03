@@ -20,13 +20,13 @@ public class Message {
     private Long id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "conservation_id", nullable = false)
+    @JoinColumn(name = "conversation_id", nullable = false)
     private Conversation conversation;
 
     private String content;
 
     @ManyToOne
-    private User receiver;
+    private User sender;
 
     LocalDateTime createdAt;
 

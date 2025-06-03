@@ -33,13 +33,15 @@ public class WebSocketService {
         if (userSessionManager.isUserConnected(userId)) {
             try {
                 // Method 1: Using convertAndSendToUser with userId
-                simpMessagingTemplate.convertAndSendToUser(userId, destination, message);
+                simpMessagingTemplate.convertAndSend("/user/queue/notifications/6", message);
+
+
                 System.out.println("✓ Message sent using convertAndSendToUser with userId: " + userId);
 
                 // Method 2: Alternative - send directly to session (uncomment to try)
-                // String sessionId = userSessionManager.getSessionIdByUserId(userId);
-                // simpMessagingTemplate.convertAndSendToUser(sessionId, destination, message);
-                // System.out.println("✓ Message sent using convertAndSendToUser with sessionId: " + sessionId);
+//                 String sessionId = userSessionManager.getSessionIdByUserId(userId);
+//                 simpMessagingTemplate.convertAndSendToUser(sessionId, destination, message);
+//                 System.out.println("✓ Message sent using convertAndSendToUser with sessionId: " + sessionId);
 
                 return true;
             } catch (Exception e) {
@@ -63,7 +65,7 @@ public class WebSocketService {
                 .type(NotificationType.NEW_POST)
                 .build();
 
-        return sendMessageToUser(userId, "/queue/notifications", notificationDTO);
+        return sendMessageToUser(userId, "/user/queue/notifications/", notificationDTO);
     }
 
     // Alternative method using sessionId directly
@@ -82,7 +84,7 @@ public class WebSocketService {
 
         try {
             // Send using sessionId as the user identifier
-            simpMessagingTemplate.convertAndSendToUser(sessionId, "/queue/notifications", notificationDTO);
+            simpMessagingTemplate.convertAndSendToUser(sessionId, "/user/queue/notifications/", notificationDTO);
             System.out.println("✓ Notification sent to session: " + sessionId + " for user: " + userId);
             return true;
         } catch (Exception e) {

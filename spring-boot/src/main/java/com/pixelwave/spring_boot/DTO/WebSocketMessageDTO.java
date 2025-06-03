@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class WebSocketMessageDTO {
+    private Long id;
     private String content;
     private String sender;
     private String channelId;
