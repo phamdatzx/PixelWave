@@ -25,11 +25,9 @@ import java.util.concurrent.ConcurrentHashMap;
 public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
 
     private final ChannelService channelService;
-    private final JwtService jwtService; // Inject your JWT service
-    private final UserDetailsService userDetailsService; // Inject UserDetailsService if needed
-    private final ConversationService conversationService; // Inject ConversationService if needed
-    // Store user sessions (same as your event listener)
-
+    private final JwtService jwtService;
+    private final UserDetailsService userDetailsService;
+    private final ConversationService conversationService;
     private final UserSessionManager userSessionManager;
 
     @Override
@@ -37,20 +35,11 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
         if (accessor != null) {
-            String sessionId = accessor.getSessionId();
-
-            // Handle CONNECT command (first STOMP frame after WebSocket connection)
             if (StompCommand.CONNECT.equals(accessor.getCommand())) {
                 return handleConnect(accessor, message);
-            }
-
-            // Handle SUBSCRIBE command
-            else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+            } else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
                 return handleSubscribe(accessor, message);
-            }
-//
-//            // Handle DISCONNECT command
-            else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
+            } else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
                 return handleDisconnect(accessor, message);
             }
         }
@@ -70,7 +59,6 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
                 String userId = validateTokenAndGetUserId(token);
 
                 if (userId != null) {
-                    // Use UserSessionManager instead of local maps
                     userSessionManager.addUserSession(userId, sessionId);
 
                     // Store in session attributes
@@ -78,7 +66,13 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
                     accessor.getSessionAttributes().put("accessToken", token);
                     accessor.getSessionAttributes().put("authenticated", true);
 
-                    System.out.println("User authenticated: " + userId);
+                    // IMPORTANT: Set the user principal for Spring's user-specific messaging
+                    // This is crucial for convertAndSendToUser to work properly
+                    accessor.setUser(() -> userId); // Set user principal to userId
+
+                    System.out.println("✓ User authenticated and principal set: " + userId);
+                    System.out.println("✓ Session ID: " + sessionId);
+
                     return message;
                 } else {
                     throw new SecurityException("Invalid authentication token");
@@ -96,42 +90,41 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
     private Message<?> handleSubscribe(StompHeaderAccessor accessor, Message<?> message) {
         String sessionId = accessor.getSessionId();
         String destination = accessor.getDestination();
-
-        // Get user ID from session attributes (set during CONNECT)
         String userId = (String) accessor.getSessionAttributes().get("userId");
-        Boolean isAuthenticated = (Boolean) accessor.getSessionAttributes().get("authenticated");
 
-        System.out.println("SUBSCRIBE - User: " + userId + ", Destination: " + destination);
+        System.out.println("=== SUBSCRIBE Debug ===");
+        System.out.println("User: " + userId);
+        System.out.println("Session: " + sessionId);
+        System.out.println("Destination: " + destination);
+        System.out.println("User Principal: " + (accessor.getUser() != null ? accessor.getUser().getName() : "null"));
 
-        if (userId == null || !Boolean.TRUE.equals(isAuthenticated)) {
-            System.out.println("Unauthenticated user trying to subscribe");
+        if (userId == null) {
             throw new SecurityException("User not authenticated");
         }
 
+        // Validate conversation subscriptions
         if (destination != null && destination.startsWith("/topic/conversation/")) {
-            // Extract channel ID from destination
             String conversationId = destination.replace("/topic/conversation/", "");
-
-            System.out.println("User " + userId + " subscribing to channel: " + conversationId);
-
-            // Check if user has permission to access this channel
-            if(!conversationService.isUserIdInConversation(Long.parseLong(userId), conversationId)){
-                System.out.println("User " + userId + " does not have permission to subscribe to channel: " + conversationId);
+            if (!conversationService.isUserIdInConversation(Long.parseLong(userId), conversationId)) {
                 throw new SecurityException("User does not have permission to access this channel");
             }
+        }
 
-            System.out.println("User " + userId + " successfully subscribed to channel: " + conversationId);
+        // Log user queue subscriptions for debugging
+        if (destination != null && destination.startsWith("/user/queue/")) {
+            System.out.println("✓ User subscribing to personal queue: " + destination);
         }
 
         return message;
     }
-//
+
     private Message<?> handleDisconnect(StompHeaderAccessor accessor, Message<?> message) {
         String sessionId = accessor.getSessionId();
         String userId = userSessionManager.getUserIdBySessionId(sessionId);
 
         if (userId != null) {
             userSessionManager.removeUserSession(userId);
+            System.out.println("✓ User disconnected: " + userId);
         }
 
         return message;
@@ -139,14 +132,12 @@ public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
 
     private String validateTokenAndGetUserId(String bearerToken) {
         try {
-            // Remove "Bearer " prefix if present
             String token = bearerToken.startsWith("Bearer ") ?
                     bearerToken.substring(7) : bearerToken;
 
-            // Validate token using your JWT service
             if (jwtService.isTokenValid(token)) {
-                var user = userDetailsService.loadUserByUsername(jwtService.extractSubject(token)); // or extractUserId(token)
-                return ((User)user).getId().toString();
+                var user = userDetailsService.loadUserByUsername(jwtService.extractSubject(token));
+                return ((User) user).getId().toString();
             }
 
             return null;

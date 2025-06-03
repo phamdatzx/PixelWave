@@ -26,6 +26,20 @@ public class WebSocketApiController {
         }
     }
 
+    @PostMapping("/send/session/{userId}")
+    public ResponseEntity<String> sendMessageToUserbySession(
+            @PathVariable String userId,
+            @RequestParam String message) {
+
+        boolean sent = webSocketService.sendNotificationToUserBySession(userId, message);
+
+        if (sent) {
+            return ResponseEntity.ok("Message sent to user: " + userId);
+        } else {
+            return ResponseEntity.badRequest().body("User not connected: " + userId);
+        }
+    }
+
     @GetMapping("/status/{userId}")
     public ResponseEntity<Boolean> getUserStatus(@PathVariable String userId) {
         boolean isOnline = webSocketService.isUserOnline(userId);

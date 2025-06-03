@@ -20,14 +20,36 @@ public class WebSocketService {
     @Autowired
     private UserSessionManager userSessionManager; // Inject UserSessionManager instead
 
-    /**
-     * Send message to a specific user by their user ID
-     */
     public boolean sendMessageToUser(String userId, String destination, Object message) {
+        System.out.println("=== Attempting to send message ===");
+        System.out.println("User ID: " + userId);
+        System.out.println("Destination: " + destination);
+        System.out.println("Message: " + message);
+        System.out.println("Is Connected: " + userSessionManager.isUserConnected(userId));
+
+        // Print all sessions for debugging
+        userSessionManager.printAllSessions();
+
         if (userSessionManager.isUserConnected(userId)) {
-            simpMessagingTemplate.convertAndSendToUser(userId, destination, message);
-            return true;
+            try {
+                // Method 1: Using convertAndSendToUser with userId
+                simpMessagingTemplate.convertAndSendToUser(userId, destination, message);
+                System.out.println("✓ Message sent using convertAndSendToUser with userId: " + userId);
+
+                // Method 2: Alternative - send directly to session (uncomment to try)
+                // String sessionId = userSessionManager.getSessionIdByUserId(userId);
+                // simpMessagingTemplate.convertAndSendToUser(sessionId, destination, message);
+                // System.out.println("✓ Message sent using convertAndSendToUser with sessionId: " + sessionId);
+
+                return true;
+            } catch (Exception e) {
+                System.err.println("✗ Error sending message: " + e.getMessage());
+                e.printStackTrace();
+                return false;
+            }
         }
+
+        System.out.println("✗ User " + userId + " not connected");
         return false;
     }
 
@@ -35,14 +57,38 @@ public class WebSocketService {
      * Send notification to a specific user
      */
     public boolean sendNotificationToUser(String userId, String notification) {
-
         NotificationDTO notificationDTO = NotificationDTO.builder()
-                .id(null) // ID can be set later if needed
-                .content("test")
+                .id(null)
+                .content(notification) // Use the actual notification content
                 .type(NotificationType.NEW_POST)
                 .build();
 
         return sendMessageToUser(userId, "/queue/notifications", notificationDTO);
+    }
+
+    // Alternative method using sessionId directly
+    public boolean sendNotificationToUserBySession(String userId, String notification) {
+        String sessionId = userSessionManager.getSessionIdByUserId(userId);
+        if (sessionId == null) {
+            System.out.println("No session found for user: " + userId);
+            return false;
+        }
+
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .id(null)
+                .content(notification)
+                .type(NotificationType.NEW_POST)
+                .build();
+
+        try {
+            // Send using sessionId as the user identifier
+            simpMessagingTemplate.convertAndSendToUser(sessionId, "/queue/notifications", notificationDTO);
+            System.out.println("✓ Notification sent to session: " + sessionId + " for user: " + userId);
+            return true;
+        } catch (Exception e) {
+            System.err.println("✗ Error sending notification: " + e.getMessage());
+            return false;
+        }
     }
 
     /**
@@ -50,13 +96,6 @@ public class WebSocketService {
      */
     public boolean isUserOnline(String userId) {
         return userSessionManager.isUserConnected(userId);
-    }
-
-    /**
-     * Get all connected users
-     */
-    public Map<String, String> getConnectedUsers() {
-        return userSessionManager.getAllConnectedUsers();
     }
 
     /**
@@ -71,12 +110,5 @@ public class WebSocketService {
      */
     public void sendToChannel(String channelId, Object message) {
         simpMessagingTemplate.convertAndSend("/topic/channel/" + channelId, message);
-    }
-
-    /**
-     * Get count of connected users
-     */
-    public int getConnectedUserCount() {
-        return userSessionManager.getConnectedUserCount();
     }
 }

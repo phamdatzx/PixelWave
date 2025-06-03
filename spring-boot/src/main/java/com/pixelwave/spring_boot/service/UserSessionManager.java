@@ -44,11 +44,11 @@ public class UserSessionManager {
         return sessionUsers.get(sessionId);
     }
 
-    public Map<String, String> getAllConnectedUsers() {
-        return new ConcurrentHashMap<>(userSessions);
-    }
-
-    public int getConnectedUserCount() {
-        return userSessions.size();
+    // Additional method to get all sessions for debugging
+    public void printAllSessions() {
+        System.out.println("=== All User Sessions ===");
+        userSessions.forEach((userId, sessionId) ->
+                System.out.println("User: " + userId + " -> Session: " + sessionId));
+        System.out.println("========================");
     }
 }

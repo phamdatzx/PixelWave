@@ -298,18 +298,28 @@
             function (frame) {
               console.log("Connected to WebSocket: " + frame);
 
-              subscription = stompClient.subscribe(
-                `/topic/conversation/${channelId}`,
-                onMessageReceived
-              );
+              // subscription = stompClient.subscribe(
+              //   `/topic/conversation/${channelId}`,
+              //   onMessageReceived
+              // );
 
-              stompClient.subscribe(
-                      '/queue/' + userId + '/notification',
-                      (message) => {
-                        console.log("Notification received: ", message);
-                        // Handle notification message
-                      }
-              )
+              subscription = stompClient.subscribe('/user/queue/notifications', function (message) {
+                console.log('🎉 NOTIFICATION RECEIVED!');
+                console.log('Raw message:', message);
+                console.log('Message body:', message.body);
+                console.log('Message headers:', message.headers);
+
+                try {
+                  const notification = JSON.parse(message.body);
+                  console.log('Parsed notification:', notification);
+                  console.log("Notification received:", message.body);
+                 // showMessage('Notification: ' + notification.content);
+                } catch (e) {
+                  console.error('Error parsing message:', e);
+                  console.log('Raw message body:', message.body);
+                  //showMessage('Raw message: ' + message.body);
+                }
+              });
 
               // stompClient.send(
               //   "/app/channel/subscribe",
