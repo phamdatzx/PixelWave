@@ -1,6 +1,8 @@
 package com.pixelwave.spring_boot.service.impl;
 
 import com.pixelwave.spring_boot.DTO.notification.NotificationDTO;
+import com.pixelwave.spring_boot.DTO.notification.WebSocketNotification;
+import com.pixelwave.spring_boot.DTO.notification.WebSocketNotificationType;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
@@ -48,15 +50,25 @@ public class NotificationServiceImpl implements NotificationService {
 
         notificationRepository.save(notification);
 
-//        // Convert to DTO for WebSocket message
-//        NotificationDTO notificationDTO = convertToDTO(notification);
+        WebSocketNotification notificationDTO = new WebSocketNotification();
+
+        switch (type){
+            case NEW_POST, NEW_COMMENT, REPLY_TO_COMMENT, TAGGED_IN_POST, MENTION_IN_COMMENT, MENTION_IN_POST,FRIEND_REQUEST_ACCEPTED:
+                notificationDTO.setType(WebSocketNotificationType.NEW_NOTIFICATION);
+                break;
+            case NEW_FRIEND_REQUEST:
+                notificationDTO.setType(WebSocketNotificationType.NEW_FRIEND_REQUEST);
+                break;
+            case NEW_MESSAGE:
+                notificationDTO.setType(WebSocketNotificationType.NEW_MESSAGE);
+                break;
+        }
 //
 //        // Send notification to specific user
-//        messagingTemplate.convertAndSendToUser(
-//                recipient.getUsername(),
-//                "/queue/notifications",
-//                notificationDTO
-//        );
+        messagingTemplate.convertAndSend(
+                "/user/queue/notifications/" + recipient.getId(),
+                notificationDTO
+        );
     }
 
     @Transactional(readOnly = true)
