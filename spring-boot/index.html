@@ -299,13 +299,8 @@
               console.log("Connected to WebSocket: " + frame);
 
               subscription = stompClient.subscribe(
-                `/topic/channel/${channelId}`,
-                onMessageReceived,
-                {
-                  Authorization:
-                    "Bearer " +
-                    "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJ0ZXN0M0BnbWFpbC5jb20iLCJpYXQiOjE3NDQ1NDE2MDEsImV4cCI6MTk3NDQ1NDE2MDF9.iG7qJl4BY0w47N3AVz86ph3zhwcuX3i5yriixwjHvpo",
-                }
+                `/topic/conversation/${channelId}`,
+                onMessageReceived
               );
 
               // stompClient.send(

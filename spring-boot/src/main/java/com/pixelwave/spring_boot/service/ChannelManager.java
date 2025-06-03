@@ -1,7 +1,7 @@
 package com.pixelwave.spring_boot.service;
 
-import com.pixelwave.spring_boot.model.Conservation;
-import com.pixelwave.spring_boot.repository.ConservationRepository;
+import com.pixelwave.spring_boot.model.Conversation;
+import com.pixelwave.spring_boot.repository.ConversationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import java.util.Map;
@@ -15,7 +15,7 @@ public class ChannelManager {
     // Store channels and their subscribers
     private final Map<String, Set<String>> channels = new ConcurrentHashMap<>();
 
-    private final ConservationRepository conservationRepository;
+    private final ConversationRepository conservationRepository;
 
     /**
      * Create a new channel
@@ -41,11 +41,11 @@ public class ChannelManager {
         }
 
         // Check if the channel exists in the database
-        Conservation conservation = conservationRepository.findById(channelId)
+        Conversation conversation = conservationRepository.findById(channelId)
                 .orElseThrow(() -> new IllegalArgumentException("Channel not found: " + channelId));
 
         // Check if the user is in the conservation
-        if(conservation.getUser1().getId().equals(userId) || conservation.getUser2().getId().equals(userId)) {
+        if(conversation.getUser1().getId().equals(userId) || conversation.getUser2().getId().equals(userId)) {
             channels.get(channelId).add(userId);
         }
     }

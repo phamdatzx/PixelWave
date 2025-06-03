@@ -1,6 +1,8 @@
 package com.pixelwave.spring_boot.config;
 
+import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.ChannelService;
+import com.pixelwave.spring_boot.service.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
@@ -9,33 +11,169 @@ import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.messaging.support.MessageHeaderAccessor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Component;
 import java.security.Principal;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 @Component
 @RequiredArgsConstructor
 public class ChannelSubscriptionInterceptor implements ChannelInterceptor {
 
     private final ChannelService channelService;
+    private final JwtService jwtService; // Inject your JWT service
+    private final UserDetailsService userDetailsService; // Inject UserDetailsService if needed
+
+    // Store user sessions (same as your event listener)
+    private final Map<String, String> userSessions = new ConcurrentHashMap<>();
+    private final Map<String, String> sessionUsers = new ConcurrentHashMap<>();
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
         StompHeaderAccessor accessor = MessageHeaderAccessor.getAccessor(message, StompHeaderAccessor.class);
 
-        if (accessor != null && StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
-            // Extract destination
-            String destination = accessor.getDestination();
-            if (destination != null && destination.startsWith("/topic/channel/")) {
-                // Extract channel ID from destination
-                String channelId = destination.replace("/topic/channel/", "");
+        if (accessor != null) {
+            String sessionId = accessor.getSessionId();
 
-                String token = accessor.getNativeHeader("Authorization").get(0);
+            // Handle CONNECT command (first STOMP frame after WebSocket connection)
+            if (StompCommand.CONNECT.equals(accessor.getCommand())) {
+                return handleConnect(accessor, message);
+            }
 
-                System.out.println("Token: " + token);
-                //check check
+            // Handle SUBSCRIBE command
+            else if (StompCommand.SUBSCRIBE.equals(accessor.getCommand())) {
+                return handleSubscribe(accessor, message);
+            }
+//
+//            // Handle DISCONNECT command
+            else if (StompCommand.DISCONNECT.equals(accessor.getCommand())) {
+                return handleDisconnect(accessor, message);
             }
         }
 
         return message;
+    }
+
+    private Message<?> handleConnect(StompHeaderAccessor accessor, Message<?> message) {
+        String sessionId = accessor.getSessionId();
+
+        // Get Authorization header from CONNECT frame
+        List<String> authHeaders = accessor.getNativeHeader("Authorization");
+
+        if (authHeaders != null && !authHeaders.isEmpty()) {
+            String token = authHeaders.get(0);
+            System.out.println("CONNECT - Token received: " + token);
+
+            try {
+                // Validate token and extract user ID
+                String userId = validateTokenAndGetUserId(token);
+
+                if (userId != null) {
+                    // Store user session mapping
+                    userSessions.put(userId, sessionId);
+                    sessionUsers.put(sessionId, userId);
+
+                    // Store in session attributes for later use
+                    accessor.getSessionAttributes().put("userId", userId);
+                    accessor.getSessionAttributes().put("accessToken", token);
+                    accessor.getSessionAttributes().put("authenticated", true);
+
+                    System.out.println("User authenticated and connected: " + userId + " with session: " + sessionId);
+
+                    return message; // Allow connection
+                } else {
+                    System.out.println("Invalid token, rejecting connection");
+                    throw new SecurityException("Invalid authentication token");
+                }
+
+            } catch (Exception e) {
+                System.err.println("Authentication failed: " + e.getMessage());
+                throw new SecurityException("Authentication failed: " + e.getMessage());
+            }
+        } else {
+            System.out.println("No Authorization header in CONNECT frame");
+            throw new SecurityException("Missing authentication token");
+        }
+    }
+
+    private Message<?> handleSubscribe(StompHeaderAccessor accessor, Message<?> message) {
+        String sessionId = accessor.getSessionId();
+        String destination = accessor.getDestination();
+
+        // Get user ID from session attributes (set during CONNECT)
+        String userId = (String) accessor.getSessionAttributes().get("userId");
+        Boolean isAuthenticated = (Boolean) accessor.getSessionAttributes().get("authenticated");
+
+        System.out.println("SUBSCRIBE - User: " + userId + ", Destination: " + destination);
+
+        if (userId == null || !Boolean.TRUE.equals(isAuthenticated)) {
+            System.out.println("Unauthenticated user trying to subscribe");
+            throw new SecurityException("User not authenticated");
+        }
+
+        if (destination != null && destination.startsWith("/topic/conversation/")) {
+            // Extract channel ID from destination
+            String conversationId = destination.replace("/topic/conversation/", "");
+
+            System.out.println("User " + userId + " subscribing to channel: " + conversationId);
+
+            // Check if user has permission to access this channel
+
+            System.out.println("User " + userId + " successfully subscribed to channel: " + conversationId);
+        }
+
+        return message;
+    }
+//
+    private Message<?> handleDisconnect(StompHeaderAccessor accessor, Message<?> message) {
+        String sessionId = accessor.getSessionId();
+        String userId = sessionUsers.get(sessionId);
+
+        if (userId != null) {
+            // Clean up user session mappings
+            userSessions.remove(userId);
+            sessionUsers.remove(sessionId);
+            System.out.println("User disconnected: " + userId);
+        }
+
+        return message;
+    }
+
+    private String validateTokenAndGetUserId(String bearerToken) {
+        try {
+            // Remove "Bearer " prefix if present
+            String token = bearerToken.startsWith("Bearer ") ?
+                    bearerToken.substring(7) : bearerToken;
+
+            // Validate token using your JWT service
+            if (jwtService.isTokenValid(token)) {
+                var user = userDetailsService.loadUserByUsername(jwtService.extractSubject(token)); // or extractUserId(token)
+                return ((User)user).getId().toString();
+            }
+
+            return null;
+        } catch (Exception e) {
+            System.err.println("Token validation error: " + e.getMessage());
+            return null;
+        }
+    }
+
+    // Public methods to access user session mappings from other components
+    public boolean isUserConnected(String userId) {
+        return userSessions.containsKey(userId);
+    }
+
+    public String getSessionIdByUserId(String userId) {
+        return userSessions.get(userId);
+    }
+
+    public String getUserIdBySessionId(String sessionId) {
+        return sessionUsers.get(sessionId);
+    }
+
+    public Map<String, String> getAllConnectedUsers() {
+        return new ConcurrentHashMap<>(userSessions);
     }
 }

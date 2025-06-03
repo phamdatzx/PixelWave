@@ -21,7 +21,7 @@ public class Message {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "conservation_id", nullable = false)
-    private Conservation conservation;
+    private Conversation conversation;
 
     private String content;
 
