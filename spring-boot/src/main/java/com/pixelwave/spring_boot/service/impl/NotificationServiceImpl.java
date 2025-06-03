@@ -20,6 +20,7 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -38,9 +39,11 @@ public class NotificationServiceImpl implements NotificationService {
         Notification notification = Notification.builder()
                 .recipient(recipient)
                 .sender(sender)
-                .type(type)
+                .isRead(false)
+                .type(type.toString())
                 .referenceId(referenceId)
                 .content(generateContent(recipient, sender, type))
+                .createdAt(LocalDateTime.now())
                 .build();
 
         notificationRepository.save(notification);
@@ -74,7 +77,7 @@ public class NotificationServiceImpl implements NotificationService {
         Page<NotificationDTO> dtoPage = notificationPage.map(notification -> NotificationDTO.builder()
                 .id(notification.getId())
                 .sender(modelMapper.map(notification.getSender(),UserDTO.class)) // Assuming you have a mapper or static method
-                .type(notification.getType())
+                .type(NotificationType.valueOf(notification.getType()))
                 .content(notification.getContent())
                 .isRead(notification.isRead())
                 .createdAt(notification.getCreatedAt())

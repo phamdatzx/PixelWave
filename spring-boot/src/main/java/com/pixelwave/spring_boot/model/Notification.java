@@ -26,8 +26,7 @@ public class Notification {
     @JoinColumn(name = "sender_id")
     private User sender;
 
-    @Enumerated(EnumType.STRING)
-    private NotificationType type;
+    private String type;
 
     private String content;
 

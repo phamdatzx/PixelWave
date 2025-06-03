@@ -70,15 +70,17 @@ public class PostService {
             image.setTags(res.getTags().stream().map(tag -> tagRepository.findByName(tag).orElse(null)).collect(Collectors.toList()));
         }
 
-//        //trigger notification for all followers
-//        for (User follower : currentUser.getFollowers()) {
-//            notificationService.sendNotification(follower, currentUser, NotificationType.NEW_POST, post.getId());
-//        }
-//
-//        //trigger notification for tagged users
-//        for(User taggedUser : taggedUsers) {
-//            notificationService.sendNotification(taggedUser, currentUser, NotificationType.TAGGED_IN_POST, post.getId());
-//        }
+        if(post.getPrivacySetting().equals("public")){
+            //trigger notification for all followers
+            for (User follower : currentUser.getFollowers()) {
+                notificationService.sendNotification(follower, currentUser, NotificationType.NEW_POST, post.getId());
+            }
+        }
+
+        //trigger notification for tagged users
+        for(User taggedUser : taggedUsers) {
+            notificationService.sendNotification(taggedUser, currentUser, NotificationType.TAGGED_IN_POST, post.getId());
+        }
 
         return modelMapper.map(postRepository.save(post), PostDetailDTO.class);
     }
