@@ -15,7 +15,6 @@ import com.pixelwave.spring_boot.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -24,7 +23,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -38,6 +36,9 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     @Transactional
     public void sendNotification(User recipient, User sender, NotificationType type, Long referenceId) {
+
+        if(recipient.getId().equals(sender.getId())) return;
+
         Notification notification = Notification.builder()
                 .recipient(recipient)
                 .sender(sender)

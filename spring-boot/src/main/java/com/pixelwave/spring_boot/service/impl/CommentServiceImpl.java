@@ -74,14 +74,14 @@ public class CommentServiceImpl {
         post.setCommentCount(post.getCommentCount() + 1);
         postRepository.save(post);
 
-//        //trigger notification
-//        //notify the owner of the comment be replied to if exists
-//        if(commentRequestDTO.getParentCommentId() != null) {
-//            var parrentComment = commentRepository.findById(commentRequestDTO.getParentCommentId()).orElseThrow(() -> new ResourceNotFoundException("Parent comment not found"));
-//            notificationService.sendNotification(parrentComment.getUser(), user, NotificationType.REPLY_TO_COMMENT,savedComment.getId());
-//        }
-//        //notify the owner of the post
-//        notificationService.sendNotification(post.getUser(), user, NotificationType.NEW_COMMENT, savedComment.getId());
+        //trigger notification
+        //notify the owner of the comment be replied to if exists
+        if(commentRequestDTO.getParentCommentId() != null) {
+            var parrentComment = commentRepository.findById(commentRequestDTO.getParentCommentId()).orElseThrow(() -> new ResourceNotFoundException("Parent comment not found"));
+            notificationService.sendNotification(parrentComment.getUser(), user, NotificationType.REPLY_TO_COMMENT,savedComment.getId());
+        }
+        //notify the owner of the post
+        notificationService.sendNotification(post.getUser(), user, NotificationType.NEW_COMMENT, savedComment.getId());
 
         return mapToCommentResponseDTO(savedComment);
     }
