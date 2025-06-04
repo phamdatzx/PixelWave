@@ -70,19 +70,21 @@ public class PostService {
             image.setTags(res.getTags().stream().map(tag -> tagRepository.findByName(tag).orElse(null)).collect(Collectors.toList()));
         }
 
+        var savedPost = postRepository.save(post);
+
         if(post.getPrivacySetting().equals("public")){
             //trigger notification for all followers
             for (User follower : currentUser.getFollowers()) {
-                notificationService.sendNotification(follower, currentUser, NotificationType.NEW_POST, post.getId());
+                notificationService.sendNotification(follower, currentUser, NotificationType.NEW_POST, savedPost.getId());
             }
         }
 
         //trigger notification for tagged users
         for(User taggedUser : taggedUsers) {
-            notificationService.sendNotification(taggedUser, currentUser, NotificationType.TAGGED_IN_POST, post.getId());
+            notificationService.sendNotification(taggedUser, currentUser, NotificationType.TAGGED_IN_POST, savedPost.getId());
         }
 
-        return modelMapper.map(postRepository.save(post), PostDetailDTO.class);
+        return modelMapper.map(savedPost, PostDetailDTO.class);
     }
 
     public PostDetailDTO getPostById(UserDetails userDetails,Long postId) {
