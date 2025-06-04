@@ -4,6 +4,7 @@ import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
 import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
 import com.pixelwave.spring_boot.DTO.post.PostSimplePageDTO;
 import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
+import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.PostService;
 import jakarta.validation.Valid;
@@ -81,5 +82,12 @@ public class PostController {
                                            @PathVariable Long postId) {
         postService.deletePost(userDetails, postId);
         return ResponseEntity.status(200).build();
+    }
+
+    @GetMapping("/post/{postId}/tagged-users")
+    public ResponseEntity<List<UserDTO>> getTaggedUsers(@AuthenticationPrincipal UserDetails userDetails,
+                                                        @PathVariable Long postId) {
+        List<UserDTO> taggedUsers = postService.getTaggedUsers(userDetails, postId);
+        return ResponseEntity.ok(taggedUsers);
     }
 }

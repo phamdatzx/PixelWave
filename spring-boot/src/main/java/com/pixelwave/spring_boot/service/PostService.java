@@ -362,4 +362,26 @@ public class PostService {
         // Delete the post
         postRepository.deletePostCompletely(post.getId());
     }
+
+    public List<UserDTO> getTaggedUsers(UserDetails userDetails, Long postId) {
+        var getUser = (User) userDetails;
+
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
+
+        if( userDetails == null && !post.getPrivacySetting().equals("public")) {
+            throw new ForbiddenException("You must be logged in to view tagged users");
+        }
+        else if(!canAccessPost(getUser.getId(), post.getId())) {
+            throw new ForbiddenException("You must be logged in to view tagged users");
+        }
+
+        return post.getTaggedUsers().stream().
+                map(user -> UserDTO.builder()
+                        .id(user.getId())
+                        .fullName(user.getFullName())
+                        .avatar(user.getAvatar())
+                        .build())
+                .collect(Collectors.toList());
+    }
 }
