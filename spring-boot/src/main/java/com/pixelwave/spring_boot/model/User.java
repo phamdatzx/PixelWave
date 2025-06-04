@@ -138,4 +138,5 @@ public class User implements UserDetails {
         return followers.stream()
                 .anyMatch(follower -> follower.getId().equals(otherUser.getId()));
     }
+
 }

@@ -38,4 +38,6 @@ public class UserDetailResponseDTO {
 
     private Boolean isFriend;
 
+    private Boolean isBlocked;
+
 }

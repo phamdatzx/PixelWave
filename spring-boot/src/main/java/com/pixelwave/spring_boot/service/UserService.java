@@ -38,6 +38,9 @@ public class UserService {
         var targetUser = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + userId));
 
+        var currentUser = userRepository.findById(((User) userDetails).getId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found id:" + ((User) userDetails).getId()));
+
         var resultDTO = modelMapper.map(targetUser, UserDetailResponseDTO.class);
         resultDTO.setPostCount(targetUser.getPosts().size());
         resultDTO.setFollowerCount(targetUser.getFollowers().size());
@@ -47,6 +50,7 @@ public class UserService {
         {
             resultDTO.setIsFriend(targetUser.isFriendWith(((User) userDetails).getId()));
             resultDTO.setIsFollowing(targetUser.isFollowingBy(((User) userDetails)));
+            resultDTO.setIsBlocked(currentUser.isBlocking(( targetUser)));
         }
         return resultDTO;
     }
