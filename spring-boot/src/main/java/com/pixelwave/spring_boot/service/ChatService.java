@@ -9,6 +9,7 @@ import com.pixelwave.spring_boot.repository.ConversationRepository;
 import com.pixelwave.spring_boot.repository.MessageRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -91,5 +92,24 @@ public class ChatService {
 
 
         return messageRepository.save(message); // Placeholder return value
+    }
+
+    public Page<com.pixelwave.spring_boot.DTO.chat.Message> getMessagesByConversationId(String conversationId, int page, int size) {
+        Pageable pageable = PageRequest.of(page, size, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Message> messagesPage = messageRepository.findByConversationId(conversationId, pageable);
+
+        return messagesPage.map(message -> com.pixelwave.spring_boot.DTO.chat.Message.builder()
+                .id(message.getId())
+                .content(message.getContent())
+                .sender(UserDTO.builder()
+                        .id(message.getSender().getId())
+                        .fullName(message.getSender().getFullName())
+                        .avatar(message.getSender().getAvatar())
+                        .build())
+                .createdAt(message.getCreatedAt())
+                .images(message.getImages().stream()
+                        .map(image -> new com.pixelwave.spring_boot.DTO.Image.ImageDTO(image.getId(),image.getSize(), image.getUrl()))
+                        .collect(Collectors.toList()))
+                .build());
     }
 }
