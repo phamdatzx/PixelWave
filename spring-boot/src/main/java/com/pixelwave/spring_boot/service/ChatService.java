@@ -69,9 +69,16 @@ public class ChatService {
                                     .avatar(otherUser.getAvatar())
                                     .build())
                             .lastUpdated(conversation.getLastUpdated())
+                            .lastMessageContent(getLastMessageContent(conversation))
                             .build();
                 })
                 .collect(Collectors.toList());
+    }
+
+    public String getLastMessageContent(Conversation conversation) {
+        return messageRepository.findTopByConversationIdOrderByCreatedAtDesc(conversation.getId())
+                .map(Message::getContent)
+                .orElse(null);
     }
 
     public Message createMessage(String conversationId, String content, Long senderId) {

@@ -12,4 +12,5 @@ public class ConversationDTO {
     private String id;
     private UserDTO user;
     private LocalDateTime lastUpdated;
+    private String lastMessageContent;
 }
