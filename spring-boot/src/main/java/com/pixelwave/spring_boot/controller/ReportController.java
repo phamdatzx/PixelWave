@@ -2,6 +2,7 @@ package com.pixelwave.spring_boot.controller;
 
 import com.pixelwave.spring_boot.DTO.report.CreateReportDTO;
 import com.pixelwave.spring_boot.DTO.report.ReportDTO;
+import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.DTO.user.UserViolationCountDTO;
 import com.pixelwave.spring_boot.DTO.violation.ViolationDTO;
 import com.pixelwave.spring_boot.model.ReportStatus;
@@ -66,5 +67,11 @@ public class ReportController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<ViolationDTO>> getUserViolations(@PathVariable Long userId) {
         return ResponseEntity.ok(reportService.getUserViolations(userId));
+    }
+
+    @PostMapping("/users/{userId}/ban")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<UserDTO> banUser(@PathVariable Long userId) {
+        return ResponseEntity.ok(reportService.banUser(userId));
     }
 } 

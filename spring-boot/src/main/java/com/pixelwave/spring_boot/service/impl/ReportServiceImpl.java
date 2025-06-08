@@ -14,6 +14,7 @@ import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.model.Violation;
 import com.pixelwave.spring_boot.repository.PostRepository;
 import com.pixelwave.spring_boot.repository.ReportRepository;
+import com.pixelwave.spring_boot.repository.UserRepository;
 import com.pixelwave.spring_boot.repository.ViolationRepository;
 import com.pixelwave.spring_boot.service.PostService;
 import com.pixelwave.spring_boot.service.ReportService;
@@ -36,6 +37,7 @@ public class ReportServiceImpl implements ReportService {
     private final ModelMapper modelMapper;
     private final PostService postService;
     private final ViolationRepository violationRepository;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
@@ -131,6 +133,21 @@ public class ReportServiceImpl implements ReportService {
         return violationRepository.findByReporterId(userId).stream()
                 .map(this::convertToDTO)
                 .toList();
+    }
+
+    @Override
+    @Transactional
+    public UserDTO banUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        if (user.getIsBanned()) {
+            throw new BadRequestException("User is already banned");
+        }
+
+        user.setIsBanned(true);
+        user = userRepository.save(user);
+        return modelMapper.map(user, UserDTO.class);
     }
 
     private ReportDTO convertToDTO(Report report) {

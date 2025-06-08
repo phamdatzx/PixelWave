@@ -2,6 +2,7 @@ package com.pixelwave.spring_boot.service;
 
 import com.pixelwave.spring_boot.DTO.report.CreateReportDTO;
 import com.pixelwave.spring_boot.DTO.report.ReportDTO;
+import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.DTO.user.UserViolationCountDTO;
 import com.pixelwave.spring_boot.DTO.violation.ViolationDTO;
 import com.pixelwave.spring_boot.model.ReportStatus;
@@ -18,4 +19,5 @@ public interface ReportService {
     void deleteReportedPost(Long postId);
     List<UserViolationCountDTO> getUserViolationCounts();
     List<ViolationDTO> getUserViolations(Long userId);
+    UserDTO banUser(Long userId);
 } 

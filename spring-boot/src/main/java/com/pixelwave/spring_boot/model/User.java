@@ -95,6 +95,8 @@ public class User implements UserDetails {
     @Column(name = "activated", nullable = false)
     private Boolean activated;
 
+    private Boolean isBanned = false;
+
     @Enumerated(EnumType.STRING)
     private Role role;
 
@@ -112,6 +114,11 @@ public class User implements UserDetails {
     @Override
     public String getUsername() {
         return username;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return !isBanned;
     }
 
     @Override
