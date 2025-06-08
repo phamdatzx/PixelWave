@@ -2,6 +2,8 @@ package com.pixelwave.spring_boot.controller;
 
 import com.pixelwave.spring_boot.DTO.report.CreateReportDTO;
 import com.pixelwave.spring_boot.DTO.report.ReportDTO;
+import com.pixelwave.spring_boot.DTO.user.UserViolationCountDTO;
+import com.pixelwave.spring_boot.DTO.violation.ViolationDTO;
 import com.pixelwave.spring_boot.model.ReportStatus;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.ReportService;
@@ -14,6 +16,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/reports")
@@ -30,6 +34,7 @@ public class ReportController {
     }
 
     @GetMapping
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Page<ReportDTO>> getReports(
             @RequestParam(required = false) ReportStatus status,
             @PageableDefault(sort = "createdAt", direction = org.springframework.data.domain.Sort.Direction.DESC) Pageable pageable) {
@@ -37,6 +42,7 @@ public class ReportController {
     }
 
     @PatchMapping("/{reportId}/status")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ReportDTO> updateReportStatus(
             @PathVariable Long reportId,
             @RequestParam ReportStatus status) {
@@ -44,8 +50,21 @@ public class ReportController {
     }
 
     @DeleteMapping("/posts/{postId}")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<Void> deleteReportedPost(@PathVariable Long postId) {
         reportService.deleteReportedPost(postId);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/users/violations")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserViolationCountDTO>> getUserViolationCounts() {
+        return ResponseEntity.ok(reportService.getUserViolationCounts());
+    }
+
+    @GetMapping("/users/{userId}/violations")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<ViolationDTO>> getUserViolations(@PathVariable Long userId) {
+        return ResponseEntity.ok(reportService.getUserViolations(userId));
     }
 } 
