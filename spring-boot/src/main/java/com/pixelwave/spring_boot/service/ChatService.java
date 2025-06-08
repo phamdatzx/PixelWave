@@ -86,17 +86,18 @@ public class ChatService {
         var sender = userRepository.findById(senderId)
                 .orElseThrow(() -> new IllegalArgumentException("Sender not found"));
 
-        var conservation = conversationRepository.findById(conversationId)
+        var conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
 
 
         Message message = Message.builder()
                 .content(content)
                 .sender(sender)
-                .conversation(conservation)
+                .conversation(conversation)
                 .createdAt(LocalDateTime.now())
                 .build();
 
+        conversation.setLastUpdated(LocalDateTime.now());
 
         return messageRepository.save(message); // Placeholder return value
     }
