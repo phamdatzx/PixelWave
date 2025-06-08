@@ -363,6 +363,28 @@ public class PostService {
         postRepository.deletePostCompletely(post.getId());
     }
 
+    @Transactional
+    public void deletePost(Long postId) {
+        Post post = postRepository.findById(postId)
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
+
+        for (Image image : post.getImages()) {
+            for(Tag tag : image.getTags()) {
+                tag.getImages().remove(image);
+                tagRepository.save(tag);
+            }
+            image.getTags().clear();
+            imageRepository.delete(image);
+        }
+
+        for (Comment comment : post.getComments()) {
+            commentRepository.delete(comment);
+        }
+
+        // Delete the post
+        postRepository.deletePostCompletely(post.getId());
+    }
+
     public List<UserDTO> getTaggedUsers(UserDetails userDetails, Long postId) {
         var getUser = (User) userDetails;
 
