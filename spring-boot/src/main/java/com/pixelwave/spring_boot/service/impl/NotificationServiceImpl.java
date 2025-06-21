@@ -12,6 +12,7 @@ import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.repository.NotificationRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
 import com.pixelwave.spring_boot.service.NotificationService;
+import com.pixelwave.spring_boot.service.WebSocketService;
 import lombok.RequiredArgsConstructor;
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
@@ -32,6 +33,7 @@ public class NotificationServiceImpl implements NotificationService {
     private final UserRepository userRepository;
     private final ModelMapper modelMapper;
     private final SimpMessagingTemplate messagingTemplate;
+    private final WebSocketService webSocketService;
 
     @Override
     @Transactional
@@ -49,27 +51,12 @@ public class NotificationServiceImpl implements NotificationService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        notificationRepository.save(notification);
+        var notificationDTO = modelMapper.map(notificationRepository.save(notification), NotificationDTO.class);
 
-        WebSocketNotification notificationDTO = new WebSocketNotification();
 
-        switch (type){
-            case NEW_POST, NEW_COMMENT, REPLY_TO_COMMENT, TAGGED_IN_POST, MENTION_IN_COMMENT, MENTION_IN_POST,FRIEND_REQUEST_ACCEPTED:
-                notificationDTO.setType(WebSocketNotificationType.NEW_NOTIFICATION);
-                break;
-            case NEW_FRIEND_REQUEST:
-                notificationDTO.setType(WebSocketNotificationType.NEW_FRIEND_REQUEST);
-                break;
-            case NEW_MESSAGE:
-                notificationDTO.setType(WebSocketNotificationType.NEW_MESSAGE);
-                break;
-        }
 //
-//        // Send notification to specific user
-        messagingTemplate.convertAndSend(
-                "/user/queue/notifications/" + recipient.getId(),
-                notificationDTO
-        );
+//
+        webSocketService.sendNotificationToUser(recipient.getId().toString(),notificationDTO);
     }
 
     @Transactional(readOnly = true)

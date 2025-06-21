@@ -33,7 +33,7 @@ public class WebSocketService {
         if (userSessionManager.isUserConnected(userId)) {
             try {
                 // Method 1: Using convertAndSendToUser with userId
-                simpMessagingTemplate.convertAndSend("/user/queue/notifications/6", message);
+                simpMessagingTemplate.convertAndSend("/user/queue/notifications/" + userId, message);
 
 
                 System.out.println("✓ Message sent using convertAndSendToUser with userId: " + userId);
@@ -58,14 +58,10 @@ public class WebSocketService {
     /**
      * Send notification to a specific user
      */
-    public boolean sendNotificationToUser(String userId, String notification) {
-        NotificationDTO notificationDTO = NotificationDTO.builder()
-                .id(null)
-                .content(notification) // Use the actual notification content
-                .type(NotificationType.NEW_POST)
-                .build();
+    public boolean sendNotificationToUser(String userId, NotificationDTO notification) {
 
-        return sendMessageToUser(userId, "/user/queue/notifications/", notificationDTO);
+
+        return sendMessageToUser(userId, "/user/queue/notifications/", notification);
     }
 
     // Alternative method using sessionId directly

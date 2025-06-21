@@ -17,7 +17,7 @@ public class WebSocketApiController {
             @PathVariable String userId,
             @RequestParam String message) {
 
-        boolean sent = webSocketService.sendNotificationToUser(userId, message);
+        boolean sent = webSocketService.sendNotificationToUser(userId, null);
 
         if (sent) {
             return ResponseEntity.ok("Message sent to user: " + userId);

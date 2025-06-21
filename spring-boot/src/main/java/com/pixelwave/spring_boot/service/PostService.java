@@ -43,6 +43,7 @@ public class PostService {
     private final PostViewRepository postViewRepository;
     private final CommentRepository commentRepository;
     private final ImageRepository imageRepository;
+    private final WebSocketService webSocketService;
 
     @Value("${post-image-directory}")
     private String postImageDirectory;
@@ -76,12 +77,14 @@ public class PostService {
             //trigger notification for all followers
             for (User follower : currentUser.getFollowers()) {
                 notificationService.sendNotification(follower, currentUser, NotificationType.NEW_POST, savedPost.getId());
+                System.out.println("Notification sent to follower: " + follower.getFullName());
             }
         }
 
         //trigger notification for tagged users
         for(User taggedUser : taggedUsers) {
             notificationService.sendNotification(taggedUser, currentUser, NotificationType.TAGGED_IN_POST, savedPost.getId());
+            System.out.println("Notification sent to user: " + taggedUser.getFullName());
         }
 
         return modelMapper.map(savedPost, PostDetailDTO.class);
@@ -378,6 +381,10 @@ public class PostService {
         }
 
         for (Comment comment : post.getComments()) {
+            for(Image image : comment.getImages()) {
+                imageRepository.delete(image);
+            }
+
             commentRepository.delete(comment);
         }
 
