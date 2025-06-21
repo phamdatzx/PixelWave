@@ -9,6 +9,7 @@ import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDetailResponseDTO;
 import com.pixelwave.spring_boot.DTO.user.UserRecommendationDTO;
 import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
+import com.pixelwave.spring_boot.service.NotificationService;
 import com.pixelwave.spring_boot.service.UserService;
 
 import jakarta.websocket.server.PathParam;

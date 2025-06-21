@@ -9,6 +9,7 @@ import com.pixelwave.spring_boot.DTO.user.UserResponseDTO;
 import com.pixelwave.spring_boot.exception.ConflictException;
 import com.pixelwave.spring_boot.exception.ForbiddenException;
 import com.pixelwave.spring_boot.exception.ResourceNotFoundException;
+import com.pixelwave.spring_boot.model.NotificationType;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.model.UserAddFriendRequest;
 import com.pixelwave.spring_boot.repository.UserAddFriendRequestRepository;
@@ -33,6 +34,8 @@ public class UserService {
     private final ChatService chatService;
     private final S3Service s3Service;
     private final PasswordEncoder passwordEncoder;
+    private final NotificationService notificationService;
+
 
     public UserDetailResponseDTO getUserById(UserDetails userDetails, Long userId) {
         var targetUser = userRepository.findById(userId)
@@ -109,7 +112,10 @@ public class UserService {
                 .createdAt(LocalDateTime.now())
                 .build();
 
-        targetUser.getFollowers().add(currentUser);
+        if(!targetUser.getFollowers().contains(currentUser)) {
+            targetUser.getFollowers().add(currentUser);
+        }
+        notificationService.sendNotification(targetUser, currentUser, NotificationType.NEW_FRIEND_REQUEST, currentUser.getId());
 
         userAddFriendRequestRepository.save(addFriendRequest);
     }
