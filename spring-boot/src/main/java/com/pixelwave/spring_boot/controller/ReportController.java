@@ -1,5 +1,7 @@
 package com.pixelwave.spring_boot.controller;
 
+import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
+import com.pixelwave.spring_boot.DTO.post.ReportedPostDTO;
 import com.pixelwave.spring_boot.DTO.report.CreateReportDTO;
 import com.pixelwave.spring_boot.DTO.report.ReportDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
@@ -73,5 +75,13 @@ public class ReportController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> banUser(@PathVariable Long userId) {
         return ResponseEntity.ok(reportService.banUser(userId));
+    }
+
+    @GetMapping("/posts")
+    public ResponseEntity<Page<ReportedPostDTO>> getReportedPosts(
+            @RequestParam(defaultValue = "pending") String status,
+            @RequestParam(defaultValue = "1") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        return ResponseEntity.ok(reportService.getReportedPosts(status, page, size));
     }
 } 

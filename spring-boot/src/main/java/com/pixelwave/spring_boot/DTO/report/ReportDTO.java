@@ -15,10 +15,11 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 public class ReportDTO {
     private Long id;
-    private UserDTO reporter;
     private Long postId;
+    private Long reporterId;
     private String reason;
     private String description;
     private ReportStatus status;
     private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 } 
