@@ -1,21 +1,30 @@
 package com.pixelwave.spring_boot.service;
 
+import com.pixelwave.spring_boot.DTO.Image.ImageDTO;
+import com.pixelwave.spring_boot.DTO.Image.ImageMessageDTO;
+import com.pixelwave.spring_boot.DTO.ImageDataDTO;
+import com.pixelwave.spring_boot.DTO.WebSocketMessageDTO;
 import com.pixelwave.spring_boot.DTO.chat.ConversationDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
-import com.pixelwave.spring_boot.model.Conversation;
-import com.pixelwave.spring_boot.model.Message;
-import com.pixelwave.spring_boot.model.UserAddFriendRequest;
+import com.pixelwave.spring_boot.model.*;
 import com.pixelwave.spring_boot.repository.ConversationRepository;
+import com.pixelwave.spring_boot.repository.ImageRepository;
 import com.pixelwave.spring_boot.repository.MessageRepository;
 import com.pixelwave.spring_boot.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Payload;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -26,6 +35,10 @@ public class ChatService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final MessageRepository messageRepository;
+    private final ImageService imageService;
+    private final ImageRepository imageRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+    private final ModelMapper modelMapper;
 
     public void createConservation(UserAddFriendRequest userAddFriendRequest) {
         var user1Id = userAddFriendRequest.getSender().getId();
@@ -98,6 +111,7 @@ public class ChatService {
                 .build();
 
         conversation.setLastUpdated(LocalDateTime.now());
+        conversationRepository.save(conversation);
 
         return messageRepository.save(message); // Placeholder return value
     }
@@ -119,5 +133,45 @@ public class ChatService {
                         .map(image -> new com.pixelwave.spring_boot.DTO.Image.ImageDTO(image.getId(),image.getSize(), image.getUrl()))
                         .collect(Collectors.toList()))
                 .build());
+    }
+
+    public void sendImageMessage(String conversationId, UserDetails userDetails, ImageMessageDTO imageMessageDTO) {
+        Long senderId = ((User) userDetails).getId();
+        var sender = userRepository.findById(senderId)
+                .orElseThrow(() -> new IllegalArgumentException("Sender not found"));
+
+        var conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+
+
+        Message message = Message.builder()
+                .content(null)
+                .sender(sender)
+                .conversation(conversation)
+                .createdAt(LocalDateTime.now())
+                .build();
+
+        conversation.setLastUpdated(LocalDateTime.now());
+
+        var savedMessage = messageRepository.save(message);
+
+        var images = imageService.uploadImages(imageMessageDTO.getImages(), "chat/images");
+        List<ImageDTO> savedImages = new ArrayList<>();
+        for(Image image : images){
+            image.setMessage(message);
+            savedImages.add(modelMapper.map(imageRepository.save(image), ImageDTO.class));
+        }
+
+        WebSocketMessageDTO messageDTO = new WebSocketMessageDTO();
+        messageDTO.setChannelId(conversationId);
+            //save to database
+        messageDTO.setId(savedMessage.getId());
+        messageDTO.setImages(savedImages);
+
+
+            // Send message to channel subscribers
+        messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, messageDTO);
+
+
     }
 }

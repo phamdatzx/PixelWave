@@ -1,7 +1,9 @@
 package com.pixelwave.spring_boot.controller;
 
+import com.pixelwave.spring_boot.DTO.Image.ImageMessageDTO;
 import com.pixelwave.spring_boot.DTO.chat.ConversationDTO;
 import com.pixelwave.spring_boot.DTO.chat.Message;
+import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.ChatService;
 import lombok.RequiredArgsConstructor;
@@ -40,5 +42,13 @@ public class ChatController {
                                                                      @RequestParam(defaultValue = "10") int size) {
         Page<Message> messages = chatService.getMessagesByConversationId(conversationId, page, size);
         return ResponseEntity.ok(messages);
+    }
+
+    @PostMapping("/conversation/{conversationId}/image")
+    public ResponseEntity<String> sendImageMessage(@PathVariable String conversationId,
+                                                   @AuthenticationPrincipal UserDetails userDetails,
+                                                   @ModelAttribute ImageMessageDTO imageMessageDTO) {
+        chatService.sendImageMessage(conversationId, userDetails,imageMessageDTO);
+        return ResponseEntity.ok("Image message sent successfully");
     }
 }
