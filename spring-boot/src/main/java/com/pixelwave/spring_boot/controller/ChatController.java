@@ -1,5 +1,6 @@
 package com.pixelwave.spring_boot.controller;
 
+import com.pixelwave.spring_boot.DTO.Image.ImageDTO;
 import com.pixelwave.spring_boot.DTO.Image.ImageMessageDTO;
 import com.pixelwave.spring_boot.DTO.chat.ConversationDTO;
 import com.pixelwave.spring_boot.DTO.chat.Message;
@@ -50,5 +51,13 @@ public class ChatController {
                                                    @ModelAttribute ImageMessageDTO imageMessageDTO) {
         chatService.sendImageMessage(conversationId, userDetails,imageMessageDTO);
         return ResponseEntity.ok("Image message sent successfully");
+    }
+
+    @GetMapping("/conversation/{conversationId}/image")
+    public ResponseEntity<List<ImageDTO>> getImages(@PathVariable String conversationId,
+                                                    @AuthenticationPrincipal UserDetails userDetails,
+                                                    @ModelAttribute ImageMessageDTO imageMessageDTO) {
+
+        return ResponseEntity.status(200).body(chatService.getImages(conversationId));
     }
 }

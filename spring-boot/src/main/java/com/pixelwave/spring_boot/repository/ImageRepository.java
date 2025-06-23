@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Set;
 
 @Repository
@@ -26,5 +27,11 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
         """, nativeQuery = true)
     void deleteImagesOfComment(Long commentId);
 
-
+    @Query(value = """
+    SELECT i.*
+    FROM image i
+    INNER JOIN message m ON i.message_id = m.id
+    WHERE m.conversation_id = :conversationId
+    """, nativeQuery = true)
+    List<Image> findByConversationId(String conversationId);
 }

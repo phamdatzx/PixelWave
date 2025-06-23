@@ -2,7 +2,6 @@ package com.pixelwave.spring_boot.service;
 
 import com.pixelwave.spring_boot.DTO.Image.ImageDTO;
 import com.pixelwave.spring_boot.DTO.Image.ImageMessageDTO;
-import com.pixelwave.spring_boot.DTO.ImageDataDTO;
 import com.pixelwave.spring_boot.DTO.WebSocketMessageDTO;
 import com.pixelwave.spring_boot.DTO.chat.ConversationDTO;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
@@ -17,8 +16,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -173,6 +170,20 @@ public class ChatService {
             // Send message to channel subscribers
         messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, messageDTO);
 
+
+    }
+
+    public List<ImageDTO> getImages(String conversationId) {
+        var conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new IllegalArgumentException("Conversation not found"));
+
+        List<Image> images = imageRepository.findByConversationId(conversationId);
+
+        List<ImageDTO> imageDTOs = images.stream()
+                .map(image -> modelMapper.map(image, ImageDTO.class))
+                .collect(Collectors.toList());
+
+        return imageDTOs;
 
     }
 }
