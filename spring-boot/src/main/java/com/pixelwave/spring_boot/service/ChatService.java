@@ -164,6 +164,7 @@ public class ChatService {
 
         WebSocketMessageDTO messageDTO = new WebSocketMessageDTO();
         messageDTO.setChannelId(conversationId);
+        messageDTO.setSender(senderId.toString());
             //save to database
         messageDTO.setId(savedMessage.getId());
         messageDTO.setImages(savedImages);
