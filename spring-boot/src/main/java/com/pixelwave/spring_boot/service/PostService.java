@@ -415,6 +415,7 @@ public class PostService {
                 .caption(post.getCaption())
                 .createdAt(Timestamp.valueOf(post.getCreatedAt()))
                 .likeCount(post.getLikeCount())
+                .postUser(modelMapper.map(post.getUser(), UserDTO.class))
                 .commentCount(post.getCommentCount())
                 .images(post.getImages().stream().map(image -> modelMapper.map(image, ImageDTO.class)).collect(Collectors.toList()))
                 .build());
