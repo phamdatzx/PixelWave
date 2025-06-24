@@ -50,11 +50,6 @@ public class ReportServiceImpl implements ReportService {
         Post post = postRepository.findById(createReportDTO.getPostId())
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-        // Check if user has already reported this post
-        if (reportRepository.existsByPostAndReporter(post, reporter)) {
-            throw new BadRequestException("You have already reported this post");
-        }
-
         Report report = Report.builder()
                 .reporter(reporter)
                 .post(post)
