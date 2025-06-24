@@ -70,7 +70,7 @@ public class ReportController {
         return ResponseEntity.ok(reportService.getUserViolations(userId));
     }
 
-    @PostMapping("/users/{userId}/ban")
+    @PostMapping("/user/{userId}/ban")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<UserDTO> banUser(@PathVariable Long userId) {
         return ResponseEntity.ok(reportService.banUser(userId));

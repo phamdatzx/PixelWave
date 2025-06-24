@@ -381,15 +381,19 @@ public class PostService {
         }
 
         for (Comment comment : post.getComments()) {
-            for(Image image : comment.getImages()) {
-                imageRepository.delete(image);
-            }
-
-            commentRepository.delete(comment);
+            deleteAComment(comment);
         }
 
         // Delete the post
         postRepository.deletePostCompletely(post.getId());
+    }
+
+    public void deleteAComment(Comment comment){
+        imageRepository.deleteByCommentId(comment.getId());
+        for(Comment reply : comment.getReplies()) {
+            deleteAComment(reply);
+        }
+        commentRepository.delete(comment);
     }
 
     public List<UserDTO> getTaggedUsers(UserDetails userDetails, Long postId) {

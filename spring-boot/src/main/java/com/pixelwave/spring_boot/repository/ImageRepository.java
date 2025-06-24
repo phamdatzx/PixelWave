@@ -34,4 +34,6 @@ public interface ImageRepository extends JpaRepository<Image, Long> {
     WHERE m.conversation_id = :conversationId
     """, nativeQuery = true)
     List<Image> findByConversationId(String conversationId);
+
+    void deleteByCommentId(Long commentId);
 }
