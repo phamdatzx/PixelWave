@@ -352,4 +352,14 @@ public class UserService {
         user.setPassword(passwordEncoder.encode(newPassword));
         userRepository.save(user);
     }
+
+    public List<UserDTO> searchUser(UserDetails userDetails, String text) {
+        List<User> users = userRepository.searchUser(text);
+        return users.stream()
+                .map(user -> {
+                    UserDTO userDTO = modelMapper.map(user, UserDTO.class);
+                    return userDTO;
+                })
+                .collect(Collectors.toList());
+    }
 }

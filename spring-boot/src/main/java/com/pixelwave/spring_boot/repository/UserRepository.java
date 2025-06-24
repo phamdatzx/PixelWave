@@ -1,6 +1,9 @@
 package com.pixelwave.spring_boot.repository;
 
+import com.pixelwave.spring_boot.model.Post;
 import com.pixelwave.spring_boot.model.User;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -22,4 +25,18 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     @Query("SELECT f FROM User u JOIN u.followers f WHERE u.id = :userId AND LOWER(f.fullName) LIKE LOWER(CONCAT('%', :searchTerm, '%'))")
     List<User> findFollowersByUserIdAndSearchTerm(@Param("userId") Long userId, @Param("searchTerm") String searchTerm);
+
+    @Query(value = """
+    SELECT *, ts_rank(to_tsvector('english', full_name), websearch_to_tsquery('english', :text)) AS rank
+    FROM users
+    WHERE to_tsvector('english', full_name) @@ websearch_to_tsquery('english', :text) 
+    ORDER BY rank DESC
+    """,
+            countQuery = """
+    SELECT COUNT(*)
+    FROM users
+    WHERE to_tsvector('english', full_name) @@ websearch_to_tsquery('english', :text)
+    """,
+            nativeQuery = true)
+    List<User> searchUser(@Param("text") String text);
 }

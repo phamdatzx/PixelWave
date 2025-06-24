@@ -151,4 +151,11 @@ public class UserController {
         return ResponseEntity.ok(userService.getFollowers(userId, searchTerm));
     }
 
+    @GetMapping("/user/search")
+    public ResponseEntity<List<UserDTO>> searchUser(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam String query) {
+        return ResponseEntity.ok(userService.searchUser(userDetails, query));
+    }
+
 }
