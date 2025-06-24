@@ -1,14 +1,12 @@
 package com.pixelwave.spring_boot.controller;
 
-import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
-import com.pixelwave.spring_boot.DTO.post.PostResponseDTO;
-import com.pixelwave.spring_boot.DTO.post.PostSimplePageDTO;
-import com.pixelwave.spring_boot.DTO.post.UploadPostDTO;
+import com.pixelwave.spring_boot.DTO.post.*;
 import com.pixelwave.spring_boot.DTO.user.UserDTO;
 import com.pixelwave.spring_boot.model.User;
 import com.pixelwave.spring_boot.service.PostService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -89,5 +87,15 @@ public class PostController {
                                                         @PathVariable Long postId) {
         List<UserDTO> taggedUsers = postService.getTaggedUsers(userDetails, postId);
         return ResponseEntity.ok(taggedUsers);
+    }
+
+    @GetMapping("/posts/search")
+    public ResponseEntity<Page<PostDetailDTO>> searchPosts(@AuthenticationPrincipal UserDetails userDetails,
+                                                           @RequestParam String query,
+                                                           @RequestParam(defaultValue = "1") int page,
+                                                           @RequestParam(defaultValue = "10") int size,
+                                                           @RequestParam(defaultValue = "created_at") String sortBy,
+                                                           @RequestParam(defaultValue = "desc") String sortDirection) {
+        return ResponseEntity.ok(postService.searchPosts(userDetails, query, page, size, sortBy, sortDirection));
     }
 }

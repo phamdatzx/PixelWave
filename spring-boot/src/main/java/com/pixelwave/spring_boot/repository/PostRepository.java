@@ -125,5 +125,21 @@ DELETE FROM post_like w where w.post_id = :postId and w.user_id = :userId
         """, nativeQuery = true)
     void deletePostCompletely(@Param("postId") Long postId);
 
+    @Query(value = """
+    SELECT *, ts_rank(to_tsvector('english', caption), plainto_tsquery('english', :text)) AS rank
+    FROM post
+    WHERE to_tsvector('english', caption) @@ plainto_tsquery('english', :text) 
+    AND privacy_setting IN ('public', 'friend')
+    ORDER BY rank DESC
+    """,
+            countQuery = """
+    SELECT COUNT(*)
+    FROM post
+    WHERE to_tsvector('english', caption) @@ plainto_tsquery('english', :text)
+    AND privacy_setting IN ('public', 'friend')
+    """,
+            nativeQuery = true)
+    Page<Post> searchByCaptionRanked(@Param("text") String text, Pageable pageable);
+
 
 }

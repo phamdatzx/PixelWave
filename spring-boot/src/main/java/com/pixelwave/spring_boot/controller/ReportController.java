@@ -1,6 +1,5 @@
 package com.pixelwave.spring_boot.controller;
 
-import com.pixelwave.spring_boot.DTO.post.PostDetailDTO;
 import com.pixelwave.spring_boot.DTO.post.ReportedPostDTO;
 import com.pixelwave.spring_boot.DTO.report.CreateReportDTO;
 import com.pixelwave.spring_boot.DTO.report.ReportDTO;

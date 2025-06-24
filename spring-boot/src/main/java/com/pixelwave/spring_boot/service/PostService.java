@@ -404,4 +404,19 @@ public class PostService {
                         .build())
                 .collect(Collectors.toList());
     }
+
+    public Page<PostDetailDTO> searchPosts(UserDetails userDetails, String query, int page, int size, String sortBy, String sortDirection) {
+        Pageable pageable = PageRequest.of(page - 1, size);
+
+        Page<Post> postPage = postRepository.searchByCaptionRanked(query, pageable);
+
+        return postPage.map(post -> PostDetailDTO.builder()
+                .id(post.getId())
+                .caption(post.getCaption())
+                .createdAt(Timestamp.valueOf(post.getCreatedAt()))
+                .likeCount(post.getLikeCount())
+                .commentCount(post.getCommentCount())
+                .images(post.getImages().stream().map(image -> modelMapper.map(image, ImageDTO.class)).collect(Collectors.toList()))
+                .build());
+    }
 }
