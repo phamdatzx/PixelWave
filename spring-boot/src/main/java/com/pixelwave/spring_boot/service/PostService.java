@@ -94,27 +94,27 @@ public class PostService {
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
 
-        //case when the user is not logged in
-        if(userDetails==null && !post.getPrivacySetting().equals("public")){
-            throw new ForbiddenException("You are not allowed to view this post");
-        }
+//        //case when the user is not logged in
+//        if(userDetails==null && !post.getPrivacySetting().equals("public")){
+//            throw new ForbiddenException("You are not allowed to view this post");
+//        }
 
-        if(userDetails != null) {
-            //check if the user is not the post owner
-            if(!post.getUser().getId().equals(((User) userDetails).getId())){
-                //check privacy setting
-                if(post.getPrivacySetting().equals("private")){
-                    throw new ForbiddenException("You are not allowed to view this post");
-                }
-                //check if the post is friend
-                if(post.getPrivacySetting().equals("friend")){
-                    //check if the user is a friend of the post owner
-                    if(!post.getUser().isFriendWith(((User) userDetails).getId())){
-                        throw new ForbiddenException("You are not allowed to view this post");
-                    }
-                }
-            }
-        }
+//        if(userDetails != null) {
+//            //check if the user is not the post owner
+//            if(!post.getUser().getId().equals(((User) userDetails).getId())){
+//                //check privacy setting
+//                if(post.getPrivacySetting().equals("private")){
+//                    throw new ForbiddenException("You are not allowed to view this post");
+//                }
+//                //check if the post is friend
+//                if(post.getPrivacySetting().equals("friend")){
+//                    //check if the user is a friend of the post owner
+//                    if(!post.getUser().isFriendWith(((User) userDetails).getId())){
+//                        throw new ForbiddenException("You are not allowed to view this post");
+//                    }
+//                }
+//            }
+//        }
 
         PostDetailDTO responseDTO = PostDetailDTO.builder()
                 .id(post.getId())
@@ -393,17 +393,8 @@ public class PostService {
     }
 
     public List<UserDTO> getTaggedUsers(UserDetails userDetails, Long postId) {
-        var getUser = (User) userDetails;
-
         Post post = postRepository.findById(postId)
                 .orElseThrow(() -> new ResourceNotFoundException("Post not found: " + postId));
-
-        if( userDetails == null && !post.getPrivacySetting().equals("public")) {
-            throw new ForbiddenException("You must be logged in to view tagged users");
-        }
-        else if(!canAccessPost(getUser.getId(), post.getId())) {
-            throw new ForbiddenException("You must be logged in to view tagged users");
-        }
 
         return post.getTaggedUsers().stream().
                 map(user -> UserDTO.builder()
