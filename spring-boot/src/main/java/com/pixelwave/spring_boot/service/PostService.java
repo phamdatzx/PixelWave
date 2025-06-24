@@ -408,7 +408,7 @@ public class PostService {
     public Page<PostDetailDTO> searchPosts(UserDetails userDetails, String query, int page, int size, String sortBy, String sortDirection) {
         Pageable pageable = PageRequest.of(page - 1, size);
 
-        Page<Post> postPage = postRepository.searchByCaptionRanked(query, pageable);
+        Page<Post> postPage = postRepository.searchByCaptionWebsearch(query, pageable);
 
         return postPage.map(post -> PostDetailDTO.builder()
                 .id(post.getId())
