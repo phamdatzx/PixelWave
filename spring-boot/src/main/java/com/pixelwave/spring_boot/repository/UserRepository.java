@@ -16,6 +16,8 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Long> {
     Optional<User> findByUsername(String username);
 
+    List<User> findAllByIsBanned(Boolean isBanned);
+
     Boolean existsByUsername(String username);
 
     List<User> findAllByIdIn(List<Long> ids);

@@ -24,4 +24,8 @@ public interface ReportService {
     UserDTO banUser(Long userId);
 
     Page<ReportedPostDTO> getReportedPosts(String status, int page, int size);
+
+    void unbanUser(Long userId);
+
+    List<UserDTO> getBannedUsers();
 } 

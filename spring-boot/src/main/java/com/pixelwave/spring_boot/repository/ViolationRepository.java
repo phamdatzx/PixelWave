@@ -12,6 +12,7 @@ public interface ViolationRepository extends JpaRepository<Violation, Long> {
 
     @Query("SELECT v.reporter as user, COUNT(v) as violationCount " +
            "FROM Violation v " +
+            "WHERE v.reporter.isBanned = false " +
            "GROUP BY v.reporter " +
            "ORDER BY violationCount DESC")
     List<Object[]> findUserViolationCounts();

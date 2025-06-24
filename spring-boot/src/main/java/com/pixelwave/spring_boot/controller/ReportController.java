@@ -83,4 +83,17 @@ public class ReportController {
             @RequestParam(defaultValue = "10") int size) {
         return ResponseEntity.ok(reportService.getReportedPosts(status, page, size));
     }
+
+    @PostMapping("/user/{userId}/unban")
+    public ResponseEntity<String> unbanUser(@PathVariable Long userId) {
+        reportService.unbanUser(userId);
+        return ResponseEntity.ok("User has been unbanned successfully.");
+    }
+
+    @GetMapping("/banned-users")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<List<UserDTO>> getBannedUsers() {
+        List<UserDTO> bannedUsers = reportService.getBannedUsers();
+        return ResponseEntity.ok(bannedUsers);
+    }
 } 

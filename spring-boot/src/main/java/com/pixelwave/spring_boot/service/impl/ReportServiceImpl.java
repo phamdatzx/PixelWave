@@ -194,6 +194,22 @@ public class ReportServiceImpl implements ReportService {
         return new PageImpl<>(reportedPostDTOs, pageable, reportedPosts.getTotalElements());
     }
 
+    @Override
+    public void unbanUser(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+        user.setIsBanned(false);
+        userRepository.save(user);
+    }
+
+    @Override
+    public List<UserDTO> getBannedUsers() {
+        userRepository.findAllByIsBanned(true);
+        return userRepository.findAllByIsBanned(true).stream()
+                .map(user -> modelMapper.map(user, UserDTO.class))
+                .collect(Collectors.toList());
+    }
+
     private ReportDTO convertToDTO(Report report) {
         return ReportDTO.builder()
                 .id(report.getId())
